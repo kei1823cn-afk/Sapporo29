@@ -72,11 +72,28 @@ h2{font-size:22px;margin:0 0 12px;display:inline-block;background:var(--yellow);
 .man{animation:bob 3s ease-in-out infinite;transform-box:fill-box;transform-origin:center bottom}
 .sun{animation:bob 5s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Four-page mobile navigation */
+body{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
+.bottom-nav{position:fixed;top:auto;bottom:0;left:0;right:0;z-index:20;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:var(--paper);border-top:3px solid var(--ink);border-bottom:0;overflow:visible}
+.bottom-nav .nav-item{font:inherit;color:var(--ink);background:transparent;border:0;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:3px 2px;cursor:pointer}
+.bottom-nav .nav-item span{font-size:23px;line-height:1.25}
+.bottom-nav .nav-item small{font-size:12px}
+.bottom-nav .nav-item.active{background:var(--yellow);outline:2px solid var(--ink)}
+.page{display:none;min-height:55vh}.page.active{display:block}
+.page>section:first-child{margin-top:18px}
+@media(min-width:700px){.bottom-nav{left:50%;right:auto;transform:translateX(-50%);width:min(640px,100%);border-left:3px solid var(--ink);border-right:3px solid var(--ink);border-radius:22px 22px 0 0}}
 </style>
 </head>
 <body>
-<nav aria-label="主選單"><b>❄ 札幌雪國</b><a href="#top">首頁</a><a href="#flight">航班</a><a href="#plan">行程</a><a href="#stay">住宿</a><a href="#restaurants">餐廳</a><a href="#lists">清單</a></nav>
+<nav class="bottom-nav" aria-label="主頁面切換">
+<button type="button" class="nav-item active" data-page="home"><span>⌂</span><small>首頁</small></button>
+<button type="button" class="nav-item" data-page="itinerary"><span>▦</span><small>行程</small></button>
+<button type="button" class="nav-item" data-page="info"><span>▤</span><small>資訊</small></button>
+<button type="button" class="nav-item" data-page="account"><span>＄</span><small>記帳</small></button>
+</nav>
 <main id="top">
+<div id="page-home" class="page active">
 <div class="card hero">
 <svg viewBox="0 0 360 230" role="img" aria-label="札幌雪景插圖：鐘樓、雪人、山與飛機" stroke="#3E3A39" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
 <g class="sun"><circle cx="300" cy="46" r="20" fill="#F6D27A"/></g>
@@ -113,7 +130,6 @@ h2{font-size:22px;margin:0 0 12px;display:inline-block;background:var(--yellow);
 <p>2027/2/9（二）– 2/15（一）</p>
 <div class="count" aria-live="polite">距離出發還有 <strong id="cd">–</strong> 天</div>
 </div>
-
 <section id="flight"><h2>✈ 航班</h2>
 <div class="flights">
 <div class="card flight"><div class="ic" aria-hidden="true">🛫</div><div><small>去程 · 2/9（二）</small><div class="route">台北桃園 TPE → 札幌新千歲 CTS</div><div>長榮航空 BR116</div><strong>09:30 起飛 → 14:05 抵達</strong><div><small>當地時間（台灣／日本）</small></div></div></div>
@@ -121,28 +137,29 @@ h2{font-size:22px;margin:0 0 12px;display:inline-block;background:var(--yellow);
 </div>
 <p class="note" style="text-align:left">以上為航空公司公布的 2026/10/25–2027/3/27 冬季班表時間；航班時刻仍可能異動，出發前請再次確認。</p>
 </section>
-
-<section id="plan"><h2>🗓 每日行程</h2>
-<div class="days" id="days" role="tablist" aria-label="選擇日期"></div>
-<div id="day" role="tabpanel"></div>
-</section>
-
 <section id="stay"><h2>🏨 住宿資訊</h2>
 <div class="stay">
 <div class="card"><h3>薄野 Comfort Hotel</h3><div>2/9 – 2/13 · 5 晚</div><small>札幌市區據點，步行可達大通公園、薄野</small></div>
 <div class="card"><h3>千歲 Comfort Hotel</h3><div>2/14 · 1 晚</div><small>隔天搭 JR 一站到新千歲機場</small></div>
 </div></section>
-
-<section id="restaurants"><h2>🍽 餐廳</h2>
+<section id="weather"><h2>☃ 札幌天氣</h2><div class="card"><strong>天氣資訊</strong><p style="margin:4px 0">出發前顯示札幌即時天氣與逐日預報。</p><small>目前尚未串接天氣資料來源，避免顯示不準確的預報。</small></div></section>
+<section id="reminders"><h2>📌 重要提醒</h2><div class="card"><ul style="margin:0;padding-left:20px"><li>確認支笏湖冬季巴士末班車時間</li><li>確認滑雪裝備租借與課程預約</li><li>出發前再次確認航空公司航班時間</li></ul></div></section>
+</div>
+<div id="page-itinerary" class="page"><section id="plan"><h2>🗓 每日行程</h2>
+<div class="days" id="days" role="tablist" aria-label="選擇日期"></div>
+<div id="day" role="tabpanel"></div>
+</section></div>
+<div id="page-info" class="page"><section id="restaurants"><h2>🍽 餐廳</h2>
 <div class="card"><h3 style="margin:0 0 6px">札幌・北海道餐廳清單</h3><p style="margin:0">這裡預留給之後整理的餐廳資訊。</p><small>可陸續新增：餐廳名稱、地址、營業時間、推薦餐點、預算、訂位資訊與備註。</small></div>
-</section>
-
-<section id="lists"><h2>✅ 清單</h2>
+</section><section id="lists"><h2>✅ 清單</h2>
 <div class="tabs"><span class="tag B" style="font-size:13px">點選打勾，會記在這支手機上</span></div>
 <h3 style="margin:14px 0 6px">待確認事項</h3><p class="prog" id="p0"></p><ul class="cl" id="l0"></ul>
 <h3 style="margin:22px 0 6px">出發前清單</h3><p class="prog" id="p1"></p><ul class="cl" id="l1"></ul>
 <h3 style="margin:22px 0 6px">行李清單</h3><p class="prog" id="p2"></p><ul class="cl" id="l2"></ul>
 </section>
+<section id="documents"><h2>📄 旅行文件</h2><div class="card"><p style="margin:0">集中整理護照、機票、住宿確認單、保險與票券等文件。後續可加入多附件上傳與檢視。</p></div></section>
+</div>
+<div id="page-account" class="page"><section><h2>💰 旅行記帳</h2><div class="card"><h3 style="margin:0 0 6px">記帳功能規劃中</h3><p style="margin:0">這個頁面先保留。之後可加入支出紀錄、幣別與匯率、分類統計及多人分帳。</p></div></section></div>
 <p class="note">雪祭 2027 年舉辦期間為 2/4 – 2/11；冰濤祭 1/30 – 2/23。<br>實際時間以官方公告為準。</p>
 </main>
 <script>
@@ -203,6 +220,14 @@ L.forEach(function(g,gi){
   if(n>0)el.textContent=n;
   else{el.parentNode.textContent=n>-7?"旅程進行中，玩得開心！":"旅程已結束，期待下次出發"}
 })();
+
+// Switch between the four main pages without losing the selected day or checklist state.
+document.querySelectorAll(".bottom-nav .nav-item").forEach(function(btn){btn.addEventListener("click",function(){
+  var target=btn.getAttribute("data-page");
+  document.querySelectorAll(".page").forEach(function(page){page.classList.toggle("active",page.id==="page-"+target)});
+  document.querySelectorAll(".bottom-nav .nav-item").forEach(function(item){item.classList.toggle("active",item===btn)});
+  window.scrollTo({top:0,behavior:"smooth"});
+})});
 </script>
 </body>
 </html>
