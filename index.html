@@ -382,7 +382,7 @@ var fileDBPromise=new Promise(function(resolve,reject){
 });
 function getFile(id){return fileDBPromise.then(function(db){return new Promise(function(resolve,reject){var r=db.transaction("files").objectStore("files").get(id);r.onsuccess=function(){resolve(r.result||null)};r.onerror=function(){reject(r.error)}})})}
 function removeLegacyFile(id){return fileDBPromise.then(function(db){return new Promise(function(resolve,reject){var tx=db.transaction("files","readwrite");tx.objectStore("files").delete(id);tx.oncomplete=resolve;tx.onerror=function(){reject(tx.error)}})})}
-function safeFileName(name){return String(name||"file").replace(/[^\\w.\\-()\\u4e00-\\u9fff]/g,"_").slice(0,100)}
+function safeFileName(name){return String(name||"file").replace(/[^\w.\-()\u4e00-\u9fff]/g,"_").slice(0,100)}
 async function putFile(file){
  await authReady;
  if(!supabaseClient)throw new Error("雲端附件服務載入失敗，請重新整理頁面或稍後再試。");
