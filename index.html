@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>札幌雪國 7天6晚</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#FFFCF6;--ink:#3E3A39;--coral:#F2A497;--yellow:#F6D27A;--sky:#A8D3E6;--green:#B9DAA5;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px);scroll-behavior:smooth}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Huninn","PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;line-height:1.6;font-size:16px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--paper);z-index:10}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--paper);border-bottom:3px solid var(--ink);display:flex;gap:8px;padding:10px 12px;overflow-x:auto;align-items:center}
+nav b{white-space:nowrap;margin-right:4px}
+nav a{white-space:nowrap;color:var(--ink);text-decoration:none;border:3px solid var(--ink);border-radius:999px;padding:2px 12px;font-size:14px}
+nav a:nth-of-type(1){background:var(--coral)}nav a:nth-of-type(2){background:var(--yellow)}nav a:nth-of-type(3){background:var(--sky)}nav a:nth-of-type(4){background:var(--green)}nav a:nth-of-type(5){background:var(--coral)}
+main{max-width:640px;margin:0 auto;padding:16px 14px 40px}
+section{margin-top:34px}
+h2{font-size:22px;margin:0 0 12px;display:inline-block;background:var(--yellow);border:3px solid var(--ink);border-radius:16px;padding:0 14px}
+.card{border:3px solid var(--ink);border-radius:26px;background:var(--paper);padding:14px 16px}
+.hero{background:var(--sky);padding:0;overflow:hidden;text-align:center}
+.hero svg{display:block;width:100%;height:auto;border-bottom:3px solid var(--ink)}
+.hero h1{margin:12px 12px 2px;font-size:28px}
+.hero p{margin:0 12px 12px}
+.count{display:inline-flex;align-items:baseline;gap:6px;background:var(--paper);border:3px solid var(--ink);border-radius:20px;padding:4px 18px;margin-bottom:16px}
+.count strong{font-size:34px;color:var(--coral);-webkit-text-stroke:1px var(--ink)}
+.flights{display:grid;gap:12px}
+.flight{display:flex;gap:12px;align-items:center}
+.flight .ic{flex:none;width:46px;height:46px;border:3px solid var(--ink);border-radius:50%;display:grid;place-items:center;background:var(--coral)}
+.flight.back .ic{background:var(--green)}
+.flight small{opacity:.75}
+.route{font-size:19px;font-weight:bold}
+.days{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px}
+.days button{flex:none;font:inherit;color:var(--ink);background:var(--paper);border:3px solid var(--ink);border-radius:18px;padding:4px 12px;cursor:pointer;line-height:1.25}
+.days button small{display:block;font-size:12px}
+.days button[aria-selected=true]{background:var(--coral)}
+#day{animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
+.dayhead{border:3px solid var(--ink);border-radius:22px;padding:10px 14px;margin-bottom:14px}
+.dayhead h3{margin:0;font-size:20px}
+.tl{list-style:none;margin:0;padding:0 0 0 18px;border-left:3px dashed var(--ink)}
+.tl li{position:relative;margin-bottom:14px}
+.tl li::before{content:"";position:absolute;left:-30px;top:12px;width:14px;height:14px;border-radius:50%;background:var(--yellow);border:3px solid var(--ink)}
+.tl .t{font-size:13px;font-weight:bold}
+.tl .card{padding:8px 12px;border-radius:20px}
+.tag{display:inline-block;font-size:12px;border:2px solid var(--ink);border-radius:999px;padding:0 9px;margin:0 4px 4px 0;line-height:1.5}
+.J{background:var(--sky)}.S{background:var(--green)}.B{background:var(--yellow)}.W{background:var(--coral)}.C{background:var(--paper)}.F{background:var(--sky)}
+.must{display:inline-block;background:var(--coral);border:2px solid var(--ink);border-radius:999px;font-size:12px;padding:0 9px;margin-left:4px;animation:wob 2.4s ease-in-out infinite}
+.stay{display:grid;gap:12px}
+.stay .card:nth-child(1){background:var(--sky)}.stay .card:nth-child(2){background:var(--green)}
+.stay h3{margin:0 0 2px;font-size:18px}
+.cl{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.cl label{display:flex;gap:10px;align-items:flex-start;border:3px solid var(--ink);border-radius:18px;padding:6px 12px;cursor:pointer;background:var(--paper)}
+.cl input{appearance:none;-webkit-appearance:none;flex:none;width:24px;height:24px;margin:2px 0 0;border:3px solid var(--ink);border-radius:8px;background:var(--paper);display:grid;place-items:center}
+.cl input:checked{background:var(--green)}
+.cl input:checked::after{content:"";width:6px;height:12px;border:solid var(--ink);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.cl input:checked+span{text-decoration:line-through;opacity:.55}
+.cl input:focus-visible,.days button:focus-visible,nav a:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.prog{font-size:14px;margin:0 0 8px}
+.note{font-size:13px;margin-top:30px;text-align:center;opacity:.8}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+@keyframes pop{0%{transform:scale(.92) translateY(14px);opacity:0}60%{transform:scale(1.03) translateY(-3px);opacity:1}100%{transform:none}}
+@keyframes wob{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes fall{0%{transform:translateY(-12px)}100%{transform:translateY(230px)}}
+@keyframes fly{0%{transform:translate(-60px,6px)}50%{transform:translate(160px,-8px)}100%{transform:translate(430px,6px)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.snow circle{animation:fall 7s linear infinite}
+.snow circle:nth-child(2n){animation-duration:9s}.snow circle:nth-child(3n){animation-duration:11s;animation-delay:-4s}
+.snow circle:nth-child(5n){animation-delay:-6s}
+.plane{animation:fly 16s linear infinite}
+.man{animation:bob 3s ease-in-out infinite;transform-box:fill-box;transform-origin:center bottom}
+.sun{animation:bob 5s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<nav aria-label="主選單"><b>❄ 札幌雪國</b><a href="#top">首頁</a><a href="#flight">航班</a><a href="#plan">行程</a><a href="#stay">住宿</a><a href="#lists">清單</a></nav>
+<main id="top">
+<div class="card hero">
+<svg viewBox="0 0 360 230" role="img" aria-label="札幌雪景插圖：鐘樓、雪人、山與飛機" stroke="#3E3A39" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+<g class="sun"><circle cx="300" cy="46" r="20" fill="#F6D27A"/></g>
+<path d="M-5 150 L60 70 L110 125 L150 85 L215 150Z" fill="#FFFCF6"/>
+<path d="M150 150 L230 60 L300 150Z" fill="#FFFCF6"/>
+<path d="M60 70 L45 90 L58 86 L66 94 L74 84 L84 92Z" fill="#B9DAA5" stroke="none"/>
+<rect x="-5" y="150" width="370" height="85" fill="#FFFCF6"/>
+<path d="M-5 168 Q60 156 120 168 T250 166 T365 164" fill="none" stroke-width="2"/>
+<g>
+<rect x="150" y="112" width="44" height="52" fill="#F2A497"/>
+<path d="M144 112 L172 88 L200 112Z" fill="#F6D27A"/>
+<rect x="166" y="66" width="12" height="24" fill="#F2A497"/>
+<path d="M164 66 L172 54 L180 66Z" fill="#F6D27A"/>
+<circle cx="172" cy="100" r="9" fill="#FFFCF6"/><path d="M172 94V100H177" fill="none" stroke-width="2"/>
+<rect x="164" y="134" width="16" height="30" rx="8" fill="#A8D3E6"/>
+</g>
+<g class="man">
+<circle cx="268" cy="176" r="24" fill="#FFFCF6"/><circle cx="268" cy="144" r="16" fill="#FFFCF6"/>
+<path d="M254 134h28v-6q-14-12-28 0z" fill="#F2A497"/>
+<circle cx="263" cy="144" r="1.5" fill="#3E3A39"/><circle cx="273" cy="144" r="1.5" fill="#3E3A39"/>
+<path d="M268 148l7 2-7 1z" fill="#F6D27A" stroke-width="2"/>
+<path d="M255 156h26" stroke="#B9DAA5" stroke-width="6"/>
+</g>
+<g class="plane" stroke-width="2.5">
+<path d="M10 30 L44 28 Q54 30 44 34 L10 36Z" fill="#FFFCF6"/>
+<path d="M22 31 L12 18 L18 18 L32 30Z" fill="#F2A497"/>
+<path d="M22 35 L12 46 L18 46 L32 36Z" fill="#F2A497"/>
+</g>
+<g class="snow" fill="#FFFCF6" stroke-width="1.5">
+<circle cx="20" cy="0" r="3"/><circle cx="62" cy="-30" r="2.5"/><circle cx="105" cy="-10" r="3"/><circle cx="140" cy="-60" r="2"/><circle cx="195" cy="-20" r="3"/><circle cx="235" cy="-50" r="2.5"/><circle cx="290" cy="-5" r="3"/><circle cx="330" cy="-40" r="2.5"/><circle cx="85" cy="-80" r="2"/><circle cx="215" cy="-90" r="3"/><circle cx="345" cy="-100" r="2"/>
+</g>
+</svg>
+<h1>札幌雪國 7天6晚</h1>
+<p>2027/2/9（二）– 2/15（一）</p>
+<div class="count" aria-live="polite">距離出發還有 <strong id="cd">–</strong> 天</div>
+</div>
+
+<section id="flight"><h2>✈ 航班</h2>
+<div class="flights">
+<div class="card flight"><div class="ic" aria-hidden="true">🛫</div><div><small>去程 · 2/9（二）</small><div class="route">台北 → 新千歲</div><div>長榮航空 BR116</div></div></div>
+<div class="card flight back"><div class="ic" aria-hidden="true">🛬</div><div><small>回程 · 2/15（一）</small><div class="route">新千歲 → 台中</div><div>星宇航空 JX319</div></div></div>
+</div>
+<p class="note" style="text-align:left">實際起降時間待確認，JX319 記得倒推到機場的時間。</p>
+</section>
+
+<section id="plan"><h2>🗓 每日行程</h2>
+<div class="days" id="days" role="tablist" aria-label="選擇日期"></div>
+<div id="day" role="tabpanel"></div>
+</section>
+
+<section id="stay"><h2>🏨 住宿資訊</h2>
+<div class="stay">
+<div class="card"><h3>薄野 Comfort Hotel</h3><div>2/9 – 2/13 · 5 晚</div><small>札幌市區據點，步行可達大通公園、薄野</small></div>
+<div class="card"><h3>千歲 Comfort Hotel</h3><div>2/14 · 1 晚</div><small>隔天搭 JR 一站到新千歲機場</small></div>
+</div></section>
+
+<section id="lists"><h2>✅ 清單</h2>
+<div class="tabs"><span class="tag B" style="font-size:13px">點選打勾，會記在這支手機上</span></div>
+<h3 style="margin:14px 0 6px">待確認事項</h3><p class="prog" id="p0"></p><ul class="cl" id="l0"></ul>
+<h3 style="margin:22px 0 6px">出發前清單</h3><p class="prog" id="p1"></p><ul class="cl" id="l1"></ul>
+<h3 style="margin:22px 0 6px">行李清單</h3><p class="prog" id="p2"></p><ul class="cl" id="l2"></ul>
+</section>
+<p class="note">雪祭 2027 年舉辦期間為 2/4 – 2/11；冰濤祭 1/30 – 2/23。<br>實際時間以官方公告為準。</p>
+</main>
+<script>
+var TG={J:"JR",S:"地鐵",B:"巴士",W:"步行",C:"纜車",F:"飛機"};
+var D=[
+["2/9","二","抵達札幌＋雪祭初體驗",[["下午","搭 BR116 抵達新千歲機場，搭 JR 前往札幌，入住薄野 Comfort Hotel","FJ"],["晚上","步行至大通公園看雪祭雪雕與點燈，順逛薄野冰雕會場","W",1],["晚餐","湯咖哩","" ]]],
+["2/10","三","小樽一日遊",[["白天","JR 快速列車至小樽 → 三角市場海鮮丼","J"],["午後","小樽運河 → 堺町通（LeTAO、六花亭、北菓樓、音樂盒堂）","W",1],["傍晚","天狗山纜車看小樽港夜景（若遇小樽雪燈之路，可改留運河；日期待確認）","C"],["晚上","返回札幌，燒肉或拉麵","J"]]],
+["2/11","四・祝","頭大佛殿＋雪祭最後一晚",[["上午","地鐵到真駒內站轉公車，前往頭大佛殿","SB",1],["下午","北海道神宮、圓山公園，六花亭現烤判官餅","W"],["晚上","大通會場雪祭最後一夜","W",1]]],
+["2/12","五","手稻滑雪場一日遊",[["白天","JR 至手稻站轉巴士，前往手稻滑雪場滑雪或玩雪","JB",1],["晚上","返回薄野，成吉思汗烤羊肉（例如達摩 Daruma，需訂位）",""]]],
+["2/13","六","札幌市區漫遊與血拚",[["上午","北海道大學校園、二條市場","W"],["下午","狸小路、大通周邊百貨、札幌車站商圈：藥妝與伴手禮一次買齊","W"],["晚上","藻岩山夜景","C"]]],
+["2/14","日","支笏湖冰濤祭＋轉住千歲",[["上午","薄野退房，JR 至千歲，寄放行李或先 check-in 千歲 Comfort Hotel","J"],["下午","搭巴士前往支笏湖，白天欣賞藍冰","B",1],["傍晚","夜間點燈約 16:30 – 20:00，看完搭巴士返回千歲","B"],["晚上","千歲休息、打包行李",""]]],
+["2/15","一","快樂賦歸",[["上午","千歲站搭 JR 至新千歲機場（一站）；先辦登機與託運","J"],["中午","拉麵道場、伴手禮、哆啦A夢樂園",""],["下午","搭 JX319 飛回台中","F"]]]
+];
+var L=[
+["l0","待確認",["BR116、JX319 實際起降時間；JX319 倒推到機場時間","千歲站 ↔ 支笏湖冬季巴士時刻，特別是回程末班車","2/14 冰濤祭門票價格與購票方式（週末可能較貴）","千歲 Comfort Hotel 距車站步行時間、早上能否提早寄放行李","小樽雪燈之路 2027 年舉辦日期","頭大佛殿冬季公車班次、藻岩山纜車營運時間","達摩等熱門餐廳訂位、手稻滑雪裝備租借與課程預約"]],
+["l1","出發前",["確認護照效期","兌換日圓、準備信用卡","辦理 Visit Japan Web","準備網卡或 eSIM","購買旅遊保險","預訂達摩等熱門餐廳","預約手稻滑雪裝備與課程","購買冰濤祭門票","確認航班時間與機場交通"]],
+["l2","行李",["護照、機票或電子登機證","防水保暖外套","發熱衣、毛衣","防滑雪靴或防滑鞋","手套、帽子、圍巾","暖暖包","護唇膏、乳液","手機充電器、行動電源","常備藥品","折疊購物袋（伴手禮用）"]]
+];
+function $(i){return document.getElementById(i)}
+function save(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+var cur=0;
+function showDay(i,anim){
+  cur=i;var d=D[i];
+  var bs=$("days").children;
+  for(var k=0;k<bs.length;k++)bs[k].setAttribute("aria-selected",k==i?"true":"false");
+  var h='<div class="dayhead" style="background:'+["#F2A497","#A8D3E6","#F6D27A","#B9DAA5"][i%4]+'"><small>Day '+(i+1)+' · '+d[0]+'（'+d[1]+'）</small><h3>'+d[2]+'</h3></div><ul class="tl">';
+  d[3].forEach(function(it){
+    var tg=(it[2]||"").split("").map(function(c){return '<span class="tag '+c+'">'+TG[c]+'</span>'}).join("");
+    h+='<li><div class="t">'+it[0]+'</div><div class="card">'+tg+(it[3]?'<span class="must">必去</span>':'')+'<div>'+esc(it[1])+'</div></div></li>';
+  });
+  var p=$("day");p.innerHTML=h+'</ul>';
+  if(anim){p.style.animation="none";void p.offsetWidth;p.style.animation=""}
+}
+D.forEach(function(d,i){
+  var b=document.createElement("button");b.type="button";b.setAttribute("role","tab");
+  b.innerHTML=d[0]+'<small>'+d[1]+'</small>';
+  b.onclick=function(){showDay(i,true)};
+  $("days").appendChild(b);
+});
+showDay(0,false);
+L.forEach(function(g,gi){
+  var ul=$(g[0]);
+  function prog(){var n=ul.querySelectorAll("input:checked").length;$("p"+gi).textContent="已完成 "+n+" / "+g[2].length}
+  g[2].forEach(function(t,i){
+    var k="sp-"+g[0]+"-"+i,li=document.createElement("li");
+    li.innerHTML='<label><input type="checkbox"><span>'+esc(t)+'</span></label>';
+    var c=li.querySelector("input");c.checked=load(k)==="1";
+    c.onchange=function(){save(k,c.checked?"1":"0");prog()};
+    ul.appendChild(li);
+  });
+  prog();
+});
+(function(){
+  var now=new Date(),t=new Date(2027,1,9),s=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  var n=Math.round((t-s)/864e5),el=$("cd");
+  if(n>0)el.textContent=n;
+  else{el.parentNode.textContent=n>-7?"旅程進行中，玩得開心！":"旅程已結束，期待下次出發"}
+})();
+</script>
+</body>
+</html>
