@@ -15,7 +15,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--paper);border-bottom:3px solid var(--ink);display:flex;gap:8px;padding:10px 12px;overflow-x:auto;align-items:center}
 nav b{white-space:nowrap;margin-right:4px}
 nav a{white-space:nowrap;color:var(--ink);text-decoration:none;border:3px solid var(--ink);border-radius:999px;padding:2px 12px;font-size:14px}
-nav a:nth-of-type(1){background:var(--coral)}nav a:nth-of-type(2){background:var(--yellow)}nav a:nth-of-type(3){background:var(--sky)}nav a:nth-of-type(4){background:var(--green)}nav a:nth-of-type(5){background:var(--coral)}
+nav a:nth-of-type(1){background:var(--coral)}nav a:nth-of-type(2){background:var(--yellow)}nav a:nth-of-type(3){background:var(--sky)}nav a:nth-of-type(4){background:var(--green)}nav a:nth-of-type(5){background:var(--coral)}nav a:nth-of-type(6){background:var(--yellow)}
 main{max-width:640px;margin:0 auto;padding:16px 14px 40px}
 section{margin-top:34px}
 h2{font-size:22px;margin:0 0 12px;display:inline-block;background:var(--yellow);border:3px solid var(--ink);border-radius:16px;padding:0 14px}
@@ -75,7 +75,7 @@ h2{font-size:22px;margin:0 0 12px;display:inline-block;background:var(--yellow);
 </style>
 </head>
 <body>
-<nav aria-label="主選單"><b>❄ 札幌雪國</b><a href="#top">首頁</a><a href="#flight">航班</a><a href="#plan">行程</a><a href="#stay">住宿</a><a href="#lists">清單</a></nav>
+<nav aria-label="主選單"><b>❄ 札幌雪國</b><a href="#top">首頁</a><a href="#flight">航班</a><a href="#plan">行程</a><a href="#stay">住宿</a><a href="#restaurants">餐廳</a><a href="#lists">清單</a></nav>
 <main id="top">
 <div class="card hero">
 <svg viewBox="0 0 360 230" role="img" aria-label="札幌雪景插圖：鐘樓、雪人、山與飛機" stroke="#3E3A39" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
@@ -116,10 +116,10 @@ h2{font-size:22px;margin:0 0 12px;display:inline-block;background:var(--yellow);
 
 <section id="flight"><h2>✈ 航班</h2>
 <div class="flights">
-<div class="card flight"><div class="ic" aria-hidden="true">🛫</div><div><small>去程 · 2/9（二）</small><div class="route">台北 → 新千歲</div><div>長榮航空 BR116</div></div></div>
-<div class="card flight back"><div class="ic" aria-hidden="true">🛬</div><div><small>回程 · 2/15（一）</small><div class="route">新千歲 → 台中</div><div>星宇航空 JX319</div></div></div>
+<div class="card flight"><div class="ic" aria-hidden="true">🛫</div><div><small>去程 · 2/9（二）</small><div class="route">台北桃園 TPE → 札幌新千歲 CTS</div><div>長榮航空 BR116</div><strong>09:30 起飛 → 14:05 抵達</strong><div><small>當地時間（台灣／日本）</small></div></div></div>
+<div class="card flight back"><div class="ic" aria-hidden="true">🛬</div><div><small>回程 · 2/15（一）</small><div class="route">札幌新千歲 CTS → 台中 RMQ</div><div>星宇航空 JX319</div><strong>16:00 起飛 → 19:55 抵達</strong><div><small>當地時間（日本／台灣）</small></div></div></div>
 </div>
-<p class="note" style="text-align:left">實際起降時間待確認，JX319 記得倒推到機場的時間。</p>
+<p class="note" style="text-align:left">以上為航空公司公布的 2026/10/25–2027/3/27 冬季班表時間；航班時刻仍可能異動，出發前請再次確認。</p>
 </section>
 
 <section id="plan"><h2>🗓 每日行程</h2>
@@ -132,6 +132,10 @@ h2{font-size:22px;margin:0 0 12px;display:inline-block;background:var(--yellow);
 <div class="card"><h3>薄野 Comfort Hotel</h3><div>2/9 – 2/13 · 5 晚</div><small>札幌市區據點，步行可達大通公園、薄野</small></div>
 <div class="card"><h3>千歲 Comfort Hotel</h3><div>2/14 · 1 晚</div><small>隔天搭 JR 一站到新千歲機場</small></div>
 </div></section>
+
+<section id="restaurants"><h2>🍽 餐廳</h2>
+<div class="card"><h3 style="margin:0 0 6px">札幌・北海道餐廳清單</h3><p style="margin:0">這裡預留給之後整理的餐廳資訊。</p><small>可陸續新增：餐廳名稱、地址、營業時間、推薦餐點、預算、訂位資訊與備註。</small></div>
+</section>
 
 <section id="lists"><h2>✅ 清單</h2>
 <div class="tabs"><span class="tag B" style="font-size:13px">點選打勾，會記在這支手機上</span></div>
