@@ -139,22 +139,6 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
 <button type="button" class="nav-item" data-page="account"><span>＄</span><small>記帳</small></button>
 </nav>
 <main id="top">
-<section class="auth-panel" id="auth-panel">
-<h3>☁️ 雲端附件帳戶</h3>
-<div class="auth-status" id="auth-status">請先登入，才能使用雲端附件。</div>
-<form id="auth-password-form" class="editor">
-<label>電子郵件<input id="auth-email" type="email" autocomplete="username" required placeholder="輸入電子郵件"></label>
-<label>密碼<input id="auth-password" type="password" autocomplete="current-password" required placeholder="輸入密碼"></label>
-<div class="auth-actions"><button class="form-btn" type="submit">密碼登入</button><button class="action-btn" id="auth-setup" type="button">首次設定／忘記密碼</button></div>
-</form>
-<form id="auth-otp-form" class="editor" hidden>
-<label>電子郵件驗證碼<input id="auth-otp" inputmode="numeric" autocomplete="one-time-code" required placeholder="輸入收到的驗證碼"></label>
-<label>設定新密碼<input id="auth-new-password" type="password" autocomplete="new-password" minlength="8" required placeholder="至少 8 個字元"></label>
-<div class="auth-actions"><button class="form-btn" type="submit">驗證並設定密碼</button><button class="action-btn" id="auth-resend" type="button">重新寄送驗證碼</button></div>
-</form>
-<div class="auth-actions"><button class="action-btn" id="auth-signout" type="button" hidden>登出</button></div>
-<small class="muted">一般使用電子郵件＋密碼登入。首次設定密碼或忘記密碼時，先以電子郵件驗證碼驗證身分，再設定新密碼。</small>
-</section>
 <div id="page-home" class="page active">
 <div class="card hero">
 <svg viewBox="0 0 360 230" role="img" aria-label="札幌雪景插圖：鐘樓、雪人、山與飛機" stroke="#3E3A39" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
@@ -289,15 +273,16 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 var supabaseClient=window.supabase.createClient("https://sdbvgroidwbodmvqqsaz.supabase.co","sb_publishable_uAQfi9iJ8DBxy-ROrvZQ4Q_sh6NIb3a");
-var currentUser=null,authReady=Promise.resolve();
-function updateAuthUI(){var st=$("auth-status");if(currentUser){st.textContent="已登入："+currentUser.email+"；雲端附件已啟用。";$("auth-password-form").hidden=true;$("auth-otp-form").hidden=true;$("auth-signout").hidden=false}else{st.textContent="尚未登入。請使用電子郵件與密碼登入。";$("auth-password-form").hidden=false;$("auth-signout").hidden=true}}
-supabaseClient.auth.onAuthStateChange(function(event,session){currentUser=session&&session.user?session.user:null;updateAuthUI()});
-authReady=supabaseClient.auth.getSession().then(function(res){currentUser=res.data.session&&res.data.session.user?res.data.session.user:null;updateAuthUI()});
-$("auth-password-form").onsubmit=async function(ev){ev.preventDefault();var res=await supabaseClient.auth.signInWithPassword({email:$("auth-email").value.trim(),password:$("auth-password").value});if(res.error){alert("登入失敗："+res.error.message+"。若尚未設定密碼，請使用「首次設定／忘記密碼」。");return}currentUser=res.data.user;updateAuthUI()};
-$("auth-setup").onclick=async function(){var email=$("auth-email").value.trim();if(!email){alert("請先輸入電子郵件。");return}var res=await supabaseClient.auth.signInWithOtp({email:email,options:{shouldCreateUser:false}});if(res.error){alert("寄送驗證碼失敗："+res.error.message);return}$("auth-otp-form").hidden=false;alert("驗證碼已寄出。請輸入驗證碼及要設定的新密碼。")};
-$("auth-otp-form").onsubmit=async function(ev){ev.preventDefault();var email=$("auth-email").value.trim();var verified=await supabaseClient.auth.verifyOtp({email:email,token:$("auth-otp").value.trim(),type:"email"});if(verified.error){alert("驗證失敗："+verified.error.message);return}var changed=await supabaseClient.auth.updateUser({password:$("auth-new-password").value});if(changed.error){alert("密碼設定失敗："+changed.error.message);return}currentUser=changed.data.user;updateAuthUI();$("auth-password").value="";alert("密碼已設定。下次請使用電子郵件與密碼登入。")};
-$("auth-resend").onclick=async function(){var res=await supabaseClient.auth.signInWithOtp({email:$("auth-email").value.trim(),options:{shouldCreateUser:false}});if(res.error)alert("重新寄送失敗："+res.error.message);else alert("驗證碼已重新寄出。")};
-$("auth-signout").onclick=async function(){await supabaseClient.auth.signOut();currentUser=null;updateAuthUI()};
+var currentUser=null;
+supabaseClient.auth.onAuthStateChange(function(event,session){currentUser=session&&session.user?session.user:null});
+var authReady=(async function(){
+ var existing=await supabaseClient.auth.getSession();
+ if(existing.error)throw existing.error;
+ if(existing.data.session){currentUser=existing.data.session.user;return}
+ var guest=await supabaseClient.auth.signInAnonymously();
+ if(guest.error)throw new Error("訪客工作階段建立失敗："+guest.error.message+"。請確認 Supabase 已啟用 Anonymous Sign-Ins。");
+ currentUser=guest.data.user;
+})();
 var TG={J:"JR",S:"地鐵",B:"巴士",W:"步行",C:"纜車",F:"飛機"};
 var D=[
 ["2/9","二","抵達札幌＋雪祭初體驗",[["下午","搭 BR116 抵達新千歲機場，搭 JR 前往札幌，入住薄野 Comfort Hotel","FJ"],["晚上","步行至大通公園看雪祭雪雕與點燈，順逛薄野冰雕會場","W",1],["晚餐","湯咖哩","" ]]],
@@ -377,7 +362,7 @@ function safeFileName(name){return String(name||"file").replace(/[^\\w.\\-()\\u4
 async function putFile(file){
  await authReady;
  if(!currentUser)throw new Error("請先登入雲端附件帳戶");
- var path=currentUser.id+"/"+crypto.randomUUID()+"_"+safeFileName(file.name);
+ var path="shared/"+crypto.randomUUID()+"_"+safeFileName(file.name);
  var result=await supabaseClient.storage.from("trip-files").upload(path,file,{contentType:file.type||"application/octet-stream",upsert:false});
  if(result.error)throw result.error;
  return {path:path,name:file.name,type:file.type,size:file.size,storage:"supabase"};
@@ -393,7 +378,7 @@ async function fileLink(meta,container,allowRemove,onRemove){
  if(meta.storage==="supabase"&&meta.path){
   var result=await supabaseClient.storage.from("trip-files").createSignedUrl(meta.path,3600);
   if(!result.error){var a=document.createElement("a");a.href=result.data.signedUrl;a.target="_blank";a.rel="noopener";a.textContent=meta.type&&meta.type.indexOf("image/")===0?"查看照片":"開啟／下載";a.download=meta.name;actions.appendChild(a)}
-  else{name.textContent+="（無法讀取，請確認登入帳戶）"}
+  else{name.textContent+="（無法讀取，請確認 Supabase Storage 共用資料夾權限）"}
  }else if(meta.id){
   var rec=await getFile(meta.id);if(rec){var url=URL.createObjectURL(rec.blob);var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.textContent=rec.type&&rec.type.indexOf("image/")===0?"查看照片":"開啟／下載";a.download=rec.name;actions.appendChild(a);var legacy=document.createElement("small");legacy.className="muted";legacy.textContent="舊版本機附件";actions.appendChild(legacy)}else{name.textContent+="（舊裝置附件不存在）"}
  }
