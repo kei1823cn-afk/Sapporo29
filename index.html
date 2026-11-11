@@ -59,7 +59,27 @@ h2{font-size:22px;margin:0 0 12px;display:inline-block;background:var(--yellow);
 .cl input:focus-visible,.days button:focus-visible,nav a:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
 .prog{font-size:14px;margin:0 0 8px}
 .note{font-size:13px;margin-top:30px;text-align:center;opacity:.8}
-.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.info-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:18px 0 16px}
+.info-tab{font:inherit;color:var(--ink);background:var(--paper);border:3px solid var(--ink);border-radius:16px;padding:8px 2px;cursor:pointer;font-size:14px}
+.info-tab.active{background:var(--yellow);transform:translateY(-2px)}
+.subpage{display:none}.subpage.active{display:block}
+.action-btn,.form-btn{font:inherit;color:var(--ink);border:2px solid var(--ink);border-radius:14px;padding:6px 12px;background:var(--yellow);cursor:pointer}
+.action-btn.delete{background:#F2A497}.action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.editor{display:grid;gap:9px;margin-top:12px}.editor label{display:grid;gap:3px;font-size:14px;font-weight:bold}
+.editor input,.editor textarea,.editor select{width:100%;font:inherit;color:var(--ink);background:white;border:2px solid var(--ink);border-radius:12px;padding:8px}
+.editor textarea{min-height:72px;resize:vertical}
+.entry{border:3px solid var(--ink);border-radius:20px;padding:12px;margin:10px 0;background:#fff}
+.entry h3{margin:0 0 4px}.entry p{margin:4px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.entry a{overflow-wrap:anywhere}
+.summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.summary{border:3px solid var(--ink);border-radius:18px;padding:10px;background:var(--sky)}
+.summary strong{display:block;font-size:20px}
+.muted{font-size:12px;opacity:.75}.empty{padding:16px;text-align:center;opacity:.7}
+.rate-status{font-size:12px;margin:6px 0 10px}
+.category-row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed #aaa}
+.split-line{font-size:13px;background:var(--green);border-radius:12px;padding:7px 10px;margin-top:8px}
+
 @keyframes pop{0%{transform:scale(.92) translateY(14px);opacity:0}60%{transform:scale(1.03) translateY(-3px);opacity:1}100%{transform:none}}
 @keyframes wob{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
 @keyframes fall{0%{transform:translateY(-12px)}100%{transform:translateY(230px)}}
@@ -149,17 +169,50 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
 <div class="days" id="days" role="tablist" aria-label="選擇日期"></div>
 <div id="day" role="tabpanel"></div>
 </section></div>
-<div id="page-info" class="page"><section id="restaurants"><h2>🍽 餐廳</h2>
-<div class="card"><h3 style="margin:0 0 6px">札幌・北海道餐廳清單</h3><p style="margin:0">這裡預留給之後整理的餐廳資訊。</p><small>可陸續新增：餐廳名稱、地址、營業時間、推薦餐點、預算、訂位資訊與備註。</small></div>
-</section><section id="lists"><h2>✅ 清單</h2>
+<div id="page-info" class="page">
+<div class="info-tabs" role="tablist" aria-label="資訊分類">
+<button class="info-tab active" type="button" data-info="restaurants">🍽 餐廳</button>
+<button class="info-tab" type="button" data-info="todos">✅ 待辦事項</button>
+<button class="info-tab" type="button" data-info="prep">🧳 行前準備</button>
+<button class="info-tab" type="button" data-info="documents">📄 旅行文件</button>
+</div>
+<div id="info-restaurants" class="subpage active"><section><h2>🍽 餐廳清單</h2>
+<div class="card"><form id="restaurant-form" class="editor">
+<label>餐廳名稱<input id="r-name" required placeholder="例如：成吉思汗烤肉"></label>
+<label>菜單<textarea id="r-menu" placeholder="推薦菜色、價格或菜單備註"></textarea></label>
+<label>Google 地圖連結<input id="r-map" type="url" placeholder="https://maps.google.com/..."></label>
+<div class="action-row"><button class="form-btn" type="submit" id="r-save">新增餐廳</button><button class="action-btn" type="button" id="r-cancel" hidden>取消編輯</button></div>
+</form></div><div id="restaurant-list"></div>
+</section></div>
+<div id="info-todos" class="subpage"><section id="lists"><h2>✅ 待辦事項</h2>
 <div class="tabs"><span class="tag B" style="font-size:13px">點選打勾，會記在這支手機上</span></div>
 <h3 style="margin:14px 0 6px">待確認事項</h3><p class="prog" id="p0"></p><ul class="cl" id="l0"></ul>
-<h3 style="margin:22px 0 6px">出發前清單</h3><p class="prog" id="p1"></p><ul class="cl" id="l1"></ul>
-<h3 style="margin:22px 0 6px">行李清單</h3><p class="prog" id="p2"></p><ul class="cl" id="l2"></ul>
-</section>
-<section id="documents"><h2>📄 旅行文件</h2><div class="card"><p style="margin:0">集中整理護照、機票、住宿確認單、保險與票券等文件。後續可加入多附件上傳與檢視。</p></div></section>
+<h3 style="margin:22px 0 6px">行前準備清單</h3><p class="prog" id="p1"></p><ul class="cl" id="l1"></ul>
+</section></div>
+<div id="info-prep" class="subpage"><section><h2>🧳 行李清單</h2><p class="prog" id="p2"></p><ul class="cl" id="l2"></ul></section></div>
+<div id="info-documents" class="subpage"><section><h2>📄 旅行文件</h2><div class="card"><p style="margin:0">集中整理護照、機票、住宿確認單、保險與票券等文件。文件上傳與多附件檢視功能可在下一階段加入。</p></div></section></div>
 </div>
-<div id="page-account" class="page"><section><h2>💰 旅行記帳</h2><div class="card"><h3 style="margin:0 0 6px">記帳功能規劃中</h3><p style="margin:0">這個頁面先保留。之後可加入支出紀錄、幣別與匯率、分類統計及多人分帳。</p></div></section></div>
+<div id="page-account" class="page"><section><h2>💰 旅行記帳</h2>
+<div class="summary-grid">
+<div class="summary">總支出（TWD）<strong id="total-twd">NT$0</strong></div>
+<div class="summary">每人分攤（TWD）<strong id="share-twd">NT$0</strong></div>
+</div>
+<div class="card"><h3 style="margin:0 0 6px">新增支出</h3><p class="muted">輸入原幣金額，系統會依即時匯率換算台幣。</p>
+<div id="rate-status" class="rate-status">正在取得匯率…</div>
+<form id="expense-form" class="editor">
+<label>項目<input id="e-item" required placeholder="例如：機場到市區車資"></label>
+<label>類別<select id="e-category"><option>交通</option><option>住宿</option><option>餐廳</option><option>行程</option><option>雜支</option><option>禮品</option><option>其它</option></select></label>
+<label>金額<input id="e-amount" type="number" min="0" step="0.01" required placeholder="0"></label>
+<label>幣值<select id="e-currency"><option value="TWD">TWD 台幣</option><option value="JPY" selected>JPY 日圓</option><option value="USD">USD 美元</option><option value="KRW">KRW 韓元</option><option value="CNY">CNY 人民幣</option><option value="HKD">HKD 港幣</option><option value="EUR">EUR 歐元</option><option value="THB">THB 泰銖</option></select></label>
+<label>均分人數<input id="e-people" type="number" min="1" step="1" value="2" required></label>
+<label>備註<textarea id="e-note" placeholder="可留空"></textarea></label>
+<div id="e-preview" class="muted">台幣換算：等待匯率資料</div>
+<div class="action-row"><button class="form-btn" id="e-save" type="submit">新增支出</button><button class="action-btn" id="e-cancel" type="button" hidden>取消編輯</button></div>
+</form></div>
+<section><h2>📊 類別統計</h2><div class="card" id="category-totals"></div></section>
+<section><h2>🧾 支出明細</h2><div id="expense-list"></div></section>
+<p class="muted">匯率採用公開匯率 API 的最新報價（通常每日更新），每筆支出會保存建立當下的換算匯率，避免日後匯率變動造成舊帳金額改變。</p>
+</section></div>
 <p class="note">雪祭 2027 年舉辦期間為 2/4 – 2/11；冰濤祭 1/30 – 2/23。<br>實際時間以官方公告為準。</p>
 </main>
 <script>
@@ -221,6 +274,81 @@ L.forEach(function(g,gi){
   else{el.parentNode.textContent=n>-7?"旅程進行中，玩得開心！":"旅程已結束，期待下次出發"}
 })();
 
+
+// Information sub-tabs; restaurant is the default view.
+function activateInfo(name){
+ document.querySelectorAll(".info-tab").forEach(function(b){b.classList.toggle("active",b.dataset.info===name)});
+ document.querySelectorAll("#page-info .subpage").forEach(function(p){p.classList.toggle("active",p.id==="info-"+name)});
+}
+document.querySelectorAll(".info-tab").forEach(function(b){b.addEventListener("click",function(){activateInfo(b.dataset.info)})});
+
+// Restaurant CRUD, persisted in this browser.
+var restaurants=JSON.parse(load("sp-restaurants")||"[]"), editingRestaurant=null;
+function saveRestaurants(){save("sp-restaurants",JSON.stringify(restaurants));renderRestaurants()}
+function renderRestaurants(){
+ var box=$("restaurant-list");box.innerHTML="";
+ if(!restaurants.length){box.innerHTML='<div class="empty">尚未新增餐廳</div>';return}
+ restaurants.forEach(function(r,i){
+  var el=document.createElement("div");el.className="entry";
+  el.innerHTML="<h3>"+esc(r.name)+"</h3>"+(r.menu?'<p><b>菜單／備註：</b>'+esc(r.menu)+'</p>':"")+(r.map?'<p><a target="_blank" rel="noopener" href="'+esc(r.map)+'">📍 開啟 Google 地圖</a></p>':"")+'<div class="action-row"><button class="action-btn" data-edit="'+i+'">編輯</button><button class="action-btn delete" data-delete="'+i+'">刪除</button></div>';
+  box.appendChild(el);
+ });
+ box.querySelectorAll("[data-edit]").forEach(function(b){b.onclick=function(){var r=restaurants[+b.dataset.edit];editingRestaurant=+b.dataset.edit;$("r-name").value=r.name;$("r-menu").value=r.menu;$("r-map").value=r.map;$("r-save").textContent="儲存修改";$("r-cancel").hidden=false;activateInfo("restaurants");window.scrollTo({top:0,behavior:"smooth"})}});
+ box.querySelectorAll("[data-delete]").forEach(function(b){b.onclick=function(){if(confirm("確定刪除這筆餐廳資料？")){restaurants.splice(+b.dataset.delete,1);saveRestaurants();resetRestaurantForm()}}});
+}
+function resetRestaurantForm(){editingRestaurant=null;$("restaurant-form").reset();$("r-save").textContent="新增餐廳";$("r-cancel").hidden=true}
+$("restaurant-form").onsubmit=function(ev){ev.preventDefault();var r={name:$("r-name").value.trim(),menu:$("r-menu").value.trim(),map:$("r-map").value.trim()};if(editingRestaurant===null)restaurants.push(r);else restaurants[editingRestaurant]=r;saveRestaurants();resetRestaurantForm()};
+$("r-cancel").onclick=resetRestaurantForm;renderRestaurants();
+
+// Expense ledger. Exchange rates are fetched from open.er-api.com; saved per record.
+var expenses=JSON.parse(load("sp-expenses")||"[]"),rates={TWD:1},rateDate="",editingExpense=null;
+var currencyNames={TWD:"台幣",JPY:"日圓",USD:"美元",KRW:"韓元",CNY:"人民幣",HKD:"港幣",EUR:"歐元",THB:"泰銖"};
+function money(n){return "NT$"+Math.round(n).toLocaleString("zh-TW")}
+async function refreshRates(){
+ $("rate-status").textContent="正在更新匯率…";
+ var codes=["JPY","USD","KRW","CNY","HKD","EUR","THB"];
+ try{
+  var results=await Promise.all(codes.map(async function(code){var res=await fetch("https://open.er-api.com/v6/latest/"+code);if(!res.ok)throw new Error("匯率服務連線失敗");var data=await res.json();if(data.result!=="success"||!data.rates||!data.rates.TWD)throw new Error("匯率資料格式錯誤");return [code,data.rates.TWD,data.time_last_update_utc]}));
+  results.forEach(function(x){rates[x[0]]=x[1]});rateDate=results[0][2]||"最新報價";
+  save("sp-rates",JSON.stringify({rates:rates,date:rateDate}));
+  $("rate-status").textContent="匯率已更新："+rateDate+"（公開匯率，非銀行即時成交價）";
+ }catch(err){
+  var cached=load("sp-rates");if(cached){try{var old=JSON.parse(cached);rates=old.rates||rates;rateDate=old.date||""}catch(e){}}
+  $("rate-status").textContent="無法連線更新匯率，使用上次保存的匯率"+(rateDate?"（"+rateDate+"）":"；目前僅能記錄台幣") ;
+ }
+ updateExpensePreview();
+}
+function updateExpensePreview(){
+ var amount=Number($("e-amount").value)||0,cur=$("e-currency").value,rate=Number(rates[cur]);
+ $("e-preview").textContent=cur==="TWD"?"台幣換算："+money(amount):rate>0?"參考換算："+money(amount*rate)+"（1 "+cur+" ≈ NT$"+rate.toFixed(4)+"）":"尚無 "+cur+" 匯率，請稍後重試";
+}
+["e-amount","e-currency"].forEach(function(id){$(id).addEventListener("input",updateExpensePreview);$(id).addEventListener("change",updateExpensePreview)});
+function saveExpenses(){save("sp-expenses",JSON.stringify(expenses));renderExpenses()}
+function renderExpenses(){
+ var total=expenses.reduce(function(s,e){return s+e.twd},0),share=expenses.reduce(function(s,e){return s+e.twd/e.people},0);
+ $("total-twd").textContent=money(total);$("share-twd").textContent=money(share);
+ var cats=["交通","住宿","餐廳","行程","雜支","禮品","其它"],html="";
+ cats.forEach(function(cat){var v=expenses.filter(function(e){return e.category===cat}).reduce(function(s,e){return s+e.twd},0);html+='<div class="category-row"><span>'+cat+'</span><b>'+money(v)+'</b></div>'});
+ $("category-totals").innerHTML=html||"尚無支出資料";
+ var box=$("expense-list");box.innerHTML="";
+ if(!expenses.length){box.innerHTML='<div class="empty">尚未新增支出</div>';return}
+ expenses.forEach(function(e,i){
+  var el=document.createElement("div");el.className="entry";
+  el.innerHTML='<h3>'+esc(e.item)+'</h3><p><span class="tag B">'+esc(e.category)+'</span> '+Number(e.amount).toLocaleString("zh-TW")+" "+esc(e.currency)+'</p><p><b>台幣折算："+money(e.twd)+'</b> <span class="muted">（匯率 '+Number(e.rate).toFixed(4)+'）</span></p><div class="split-line">均分 '+e.people+' 人｜每人 '+money(e.twd/e.people)+'</div>'+(e.note?'<p>備註：'+esc(e.note)+'</p>':"")+'<div class="action-row"><button class="action-btn" data-edit="'+i+'">編輯</button><button class="action-btn delete" data-delete="'+i+'">刪除</button></div>';
+  box.appendChild(el);
+ });
+ box.querySelectorAll("[data-edit]").forEach(function(b){b.onclick=function(){var e=expenses[+b.dataset.edit];editingExpense=+b.dataset.edit;$("e-item").value=e.item;$("e-category").value=e.category;$("e-amount").value=e.amount;$("e-currency").value=e.currency;$("e-people").value=e.people;$("e-note").value=e.note;$("e-save").textContent="儲存修改";$("e-cancel").hidden=false;updateExpensePreview();window.scrollTo({top:0,behavior:"smooth"})}});
+ box.querySelectorAll("[data-delete]").forEach(function(b){b.onclick=function(){if(confirm("確定刪除這筆支出？")){expenses.splice(+b.dataset.delete,1);saveExpenses();resetExpenseForm()}}});
+}
+function resetExpenseForm(){editingExpense=null;$("expense-form").reset();$("e-currency").value="JPY";$("e-people").value=2;$("e-save").textContent="新增支出";$("e-cancel").hidden=true;updateExpensePreview()}
+$("expense-form").onsubmit=function(ev){
+ ev.preventDefault();var amount=Number($("e-amount").value),currency=$("e-currency").value,rate=Number(rates[currency]);
+ if(!(amount>0)){alert("請輸入有效金額");return}if(!(rate>0)){alert("目前沒有可用匯率，請確認網路後重新整理匯率");return}
+ var e={item:$("e-item").value.trim(),category:$("e-category").value,amount:amount,currency:currency,people:Math.max(1,Math.floor(Number($("e-people").value)||1)),note:$("e-note").value.trim(),rate:rate,twd:amount*rate,rateDate:rateDate};
+ if(editingExpense===null)expenses.push(e);else expenses[editingExpense]=e;saveExpenses();resetExpenseForm();
+};
+$("e-cancel").onclick=resetExpenseForm;
+renderExpenses();refreshRates();
 // Switch between the four main pages without losing the selected day or checklist state.
 document.querySelectorAll(".bottom-nav .nav-item").forEach(function(btn){btn.addEventListener("click",function(){
   var target=btn.getAttribute("data-page");
