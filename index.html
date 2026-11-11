@@ -124,6 +124,11 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
 .page{display:none;min-height:55vh}.page.active{display:block}
 .page>section:first-child{margin-top:18px}
 @media(min-width:700px){.bottom-nav{left:50%;right:auto;transform:translateX(-50%);width:min(640px,100%);border-left:3px solid var(--ink);border-right:3px solid var(--ink);border-radius:22px 22px 0 0}}
+
+.auth-panel{margin:14px 0;padding:12px;border:3px solid var(--ink);border-radius:20px;background:#fff}
+.auth-panel h3{margin:0 0 6px}.auth-panel .editor{margin-top:8px}
+.auth-status{font-size:13px;margin:5px 0}
+.auth-actions{display:flex;gap:8px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -134,6 +139,20 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
 <button type="button" class="nav-item" data-page="account"><span>＄</span><small>記帳</small></button>
 </nav>
 <main id="top">
+<section class="auth-panel" id="auth-panel">
+<h3>☁️ 雲端附件帳戶</h3>
+<div class="auth-status" id="auth-status">請先登入，才能使用雲端附件。</div>
+<form id="auth-email-form" class="editor">
+<label>電子郵件<input id="auth-email" type="email" autocomplete="email" required placeholder="輸入電子郵件"></label>
+<div class="auth-actions"><button class="form-btn" type="submit">寄送登入驗證碼</button></div>
+</form>
+<form id="auth-otp-form" class="editor" hidden>
+<label>電子郵件驗證碼<input id="auth-otp" inputmode="numeric" autocomplete="one-time-code" required placeholder="輸入收到的驗證碼"></label>
+<div class="auth-actions"><button class="form-btn" type="submit">完成登入</button><button class="action-btn" id="auth-resend" type="button">重新寄送</button></div>
+</form>
+<div class="auth-actions"><button class="action-btn" id="auth-signout" type="button" hidden>登出</button></div>
+<small class="muted">使用電子郵件一次性驗證碼登入；同一帳戶可在不同裝置存取雲端附件。</small>
+</section>
 <div id="page-home" class="page active">
 <div class="card hero">
 <svg viewBox="0 0 360 230" role="img" aria-label="札幌雪景插圖：鐘樓、雪人、山與飛機" stroke="#3E3A39" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
@@ -265,7 +284,17 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
 </section></div>
 <p class="note">雪祭 2027 年舉辦期間為 2/4 – 2/11；冰濤祭 1/30 – 2/23。<br>實際時間以官方公告為準。</p>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+var supabaseClient=window.supabase.createClient("https://sdbvgroidwbodmvqqsaz.supabase.co","sb_publishable_uAQfi9iJ8DBxy-ROrvZQ4Q_sh6NIb3a");
+var currentUser=null,authReady=Promise.resolve();
+function updateAuthUI(){var st=$("auth-status");if(currentUser){st.textContent="已登入："+currentUser.email+"；雲端附件已啟用。";$("auth-email-form").hidden=true;$("auth-otp-form").hidden=true;$("auth-signout").hidden=false}else{st.textContent="尚未登入。登入後即可上傳、查閱及刪除雲端附件。";$("auth-email-form").hidden=false;$("auth-signout").hidden=true}}
+supabaseClient.auth.onAuthStateChange(function(event,session){currentUser=session&&session.user?session.user:null;updateAuthUI()});
+authReady=supabaseClient.auth.getSession().then(function(res){currentUser=res.data.session&&res.data.session.user?res.data.session.user:null;updateAuthUI()});
+$("auth-email-form").onsubmit=async function(ev){ev.preventDefault();var email=$("auth-email").value.trim();var res=await supabaseClient.auth.signInWithOtp({email:email,options:{shouldCreateUser:true}});if(res.error){alert("寄送失敗："+res.error.message);return}$("auth-otp-form").hidden=false;alert("驗證碼已寄出，請查看電子郵件。")};
+$("auth-otp-form").onsubmit=async function(ev){ev.preventDefault();var res=await supabaseClient.auth.verifyOtp({email:$("auth-email").value.trim(),token:$("auth-otp").value.trim(),type:"email"});if(res.error){alert("登入失敗："+res.error.message);return}currentUser=res.data.user;updateAuthUI();alert("登入成功。")};
+$("auth-resend").onclick=function(){$("auth-email-form").requestSubmit()};
+$("auth-signout").onclick=async function(){await supabaseClient.auth.signOut();currentUser=null;updateAuthUI()};
 var TG={J:"JR",S:"地鐵",B:"巴士",W:"步行",C:"纜車",F:"飛機"};
 var D=[
 ["2/9","二","抵達札幌＋雪祭初體驗",[["下午","搭 BR116 抵達新千歲機場，搭 JR 前往札幌，入住薄野 Comfort Hotel","FJ"],["晚上","步行至大通公園看雪祭雪雕與點燈，順逛薄野冰雕會場","W",1],["晚餐","湯咖哩","" ]]],
@@ -333,24 +362,42 @@ document.querySelectorAll("[data-list-add]").forEach(function(b){b.onclick=funct
 })();
 
 
-// IndexedDB stores uploaded files separately from localStorage to avoid its small storage quota.
+// Keep legacy IndexedDB support for old attachments; new files use private Supabase Storage.
 var fileDBPromise=new Promise(function(resolve,reject){
  var req=indexedDB.open("sapporo29-files",1);
  req.onupgradeneeded=function(){var db=req.result;if(!db.objectStoreNames.contains("files"))db.createObjectStore("files",{keyPath:"id"})};
  req.onsuccess=function(){resolve(req.result)};req.onerror=function(){reject(req.error)};
 });
-function putFile(file){return fileDBPromise.then(function(db){return new Promise(function(resolve,reject){var id="f-"+Date.now()+"-"+Math.random().toString(36).slice(2);var tx=db.transaction("files","readwrite");tx.objectStore("files").put({id:id,blob:file,name:file.name,type:file.type,size:file.size});tx.oncomplete=function(){resolve({id:id,name:file.name,type:file.type,size:file.size})};tx.onerror=function(){reject(tx.error)}})})}
 function getFile(id){return fileDBPromise.then(function(db){return new Promise(function(resolve,reject){var r=db.transaction("files").objectStore("files").get(id);r.onsuccess=function(){resolve(r.result||null)};r.onerror=function(){reject(r.error)}})})}
-function removeFile(id){return fileDBPromise.then(function(db){return new Promise(function(resolve,reject){var tx=db.transaction("files","readwrite");tx.objectStore("files").delete(id);tx.oncomplete=resolve;tx.onerror=function(){reject(tx.error)}})})}
-function fileLink(meta,container,allowRemove,onRemove){
+function removeLegacyFile(id){return fileDBPromise.then(function(db){return new Promise(function(resolve,reject){var tx=db.transaction("files","readwrite");tx.objectStore("files").delete(id);tx.oncomplete=resolve;tx.onerror=function(){reject(tx.error)}})})}
+function safeFileName(name){return String(name||"file").replace(/[^\\w.\\-()\\u4e00-\\u9fff]/g,"_").slice(0,100)}
+async function putFile(file){
+ await authReady;
+ if(!currentUser)throw new Error("請先登入雲端附件帳戶");
+ var path=currentUser.id+"/"+crypto.randomUUID()+"_"+safeFileName(file.name);
+ var result=await supabaseClient.storage.from("trip-files").upload(path,file,{contentType:file.type||"application/octet-stream",upsert:false});
+ if(result.error)throw result.error;
+ return {path:path,name:file.name,type:file.type,size:file.size,storage:"supabase"};
+}
+async function removeFile(meta){
+ if(meta&&meta.storage==="supabase"&&meta.path){var r=await supabaseClient.storage.from("trip-files").remove([meta.path]);if(r.error)throw r.error;return}
+ if(meta&&meta.id)await removeLegacyFile(meta.id);
+}
+async function fileLink(meta,container,allowRemove,onRemove){
  var row=document.createElement("div");row.className="file-item";
  var name=document.createElement("span");name.textContent="📎 "+meta.name;row.appendChild(name);
  var actions=document.createElement("div");actions.className="action-row";actions.style.margin="0";
- getFile(meta.id).then(function(rec){if(!rec)return;var url=URL.createObjectURL(rec.blob);var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.textContent=rec.type&&rec.type.indexOf("image/")===0?"查看照片":"開啟／下載";a.download=rec.name;actions.appendChild(a)});
+ if(meta.storage==="supabase"&&meta.path){
+  var result=await supabaseClient.storage.from("trip-files").createSignedUrl(meta.path,3600);
+  if(!result.error){var a=document.createElement("a");a.href=result.data.signedUrl;a.target="_blank";a.rel="noopener";a.textContent=meta.type&&meta.type.indexOf("image/")===0?"查看照片":"開啟／下載";a.download=meta.name;actions.appendChild(a)}
+  else{name.textContent+="（無法讀取，請確認登入帳戶）"}
+ }else if(meta.id){
+  var rec=await getFile(meta.id);if(rec){var url=URL.createObjectURL(rec.blob);var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.textContent=rec.type&&rec.type.indexOf("image/")===0?"查看照片":"開啟／下載";a.download=rec.name;actions.appendChild(a);var migrate=document.createElement("button");migrate.type="button";migrate.textContent="搬到雲端";migrate.onclick=async function(){try{var cloud=await putFile(new File([rec.blob],rec.name,{type:rec.type}));onRemove(meta);alert("已上傳雲端，請重新儲存該筆資料以保留雲端附件。")}catch(e){alert("搬移失敗："+e.message)}};actions.appendChild(migrate)}else{name.textContent+="（舊裝置附件不存在）"}
+ }
  if(allowRemove){var b=document.createElement("button");b.type="button";b.textContent="移除";b.onclick=function(){onRemove(meta)};actions.appendChild(b)}
  row.appendChild(actions);container.appendChild(row);
 }
-function storeFiles(fileList){return Promise.all(Array.from(fileList||[]).map(putFile))}
+async function storeFiles(fileList){return Promise.all(Array.from(fileList||[]).map(putFile))}
 function activateInfo(name){
  var tabName=name==="restaurant-editor"?"restaurants":name;
  document.querySelectorAll(".info-tab").forEach(function(b){b.classList.toggle("active",b.dataset.info===tabName)});
@@ -370,9 +417,9 @@ function renderRestaurants(){
   box.appendChild(el);(r.files||[]).forEach(function(meta){fileLink(meta,el.querySelector(".file-list"),false)});
  });
  box.querySelectorAll("[data-edit]").forEach(function(b){b.onclick=function(){var r=restaurants[+b.dataset.edit];editingRestaurant=+b.dataset.edit;$("r-name").value=r.name;$("r-menu").value=r.menu;$("r-map").value=r.map;restaurantDraftFiles=(r.files||[]).slice();renderRestaurantDraft();$("r-save").textContent="儲存修改";$("r-editor-title").textContent="編輯餐廳";activateInfo("restaurant-editor");window.scrollTo({top:0,behavior:"smooth"})}});
- box.querySelectorAll("[data-delete]").forEach(function(b){b.onclick=function(){if(confirm("確定刪除這筆餐廳資料？")){var old=restaurants.splice(+b.dataset.delete,1)[0];(old.files||[]).forEach(function(m){removeFile(m.id)});saveRestaurants();resetRestaurantForm()}}});
+ box.querySelectorAll("[data-delete]").forEach(function(b){b.onclick=function(){if(confirm("確定刪除這筆餐廳資料？")){var old=restaurants.splice(+b.dataset.delete,1)[0];(old.files||[]).forEach(function(m){removeFile(m).catch(function(e){alert("附件刪除失敗："+e.message)})});saveRestaurants();resetRestaurantForm()}}});
 }
-function renderRestaurantDraft(){var box=$("r-file-list");box.innerHTML="";restaurantDraftFiles.forEach(function(meta){fileLink(meta,box,true,function(m){restaurantDraftFiles=restaurantDraftFiles.filter(function(x){return x.id!==m.id});removeFile(m.id);renderRestaurantDraft()})})}
+function renderRestaurantDraft(){var box=$("r-file-list");box.innerHTML="";restaurantDraftFiles.forEach(function(meta){fileLink(meta,box,true,function(m){restaurantDraftFiles=restaurantDraftFiles.filter(function(x){return x.path!==m.path&&x.id!==m.id});removeFile(m).then(renderRestaurantDraft).catch(function(e){alert("附件刪除失敗："+e.message)})})})}
 function showRestaurantEditor(){activateInfo("restaurant-editor");$("r-name").focus()}
 function resetRestaurantForm(){editingRestaurant=null;restaurantDraftFiles=[];$("restaurant-form").reset();$("r-save").textContent="新增餐廳";$("r-editor-title").textContent="新增餐廳";$("r-file-list").innerHTML=""}
 $("r-add").onclick=function(){resetRestaurantForm();showRestaurantEditor()};
@@ -381,7 +428,7 @@ $("r-cancel").onclick=function(){resetRestaurantForm();activateInfo("restaurants
 $("r-take").onclick=function(){$("r-camera-input").click()};
 $("r-photo").onclick=function(){$("r-photo-input").click()};
 $("r-upload").onclick=function(){$("r-upload-input").click()};
-async function addRestaurantFiles(input){try{var added=await storeFiles(input.files);restaurantDraftFiles=restaurantDraftFiles.concat(added);renderRestaurantDraft()}catch(e){alert("附件儲存失敗，請確認檔案後重試")}finally{input.value=""}}
+async function addRestaurantFiles(input){try{var added=await storeFiles(input.files);restaurantDraftFiles=restaurantDraftFiles.concat(added);renderRestaurantDraft()}catch(e){alert("附件上傳失敗："+e.message)}finally{input.value=""}}
 ["r-camera-input","r-photo-input","r-upload-input"].forEach(function(id){$(id).addEventListener("change",function(){addRestaurantFiles(this)})});
 function decodeMapPart(v){try{return decodeURIComponent(v.replace(/\+/g," ")).trim()}catch(e){return v.trim()}}
 function extractMapName(raw){
@@ -409,7 +456,7 @@ renderRestaurants();
 
 // Travel documents CRUD with multiple IndexedDB-backed attachments.
 var documents=JSON.parse(load("sp-documents")||"[]"),editingDocument=null,documentDraftFiles=[];
-function renderDocumentDraft(){var box=$("doc-existing-files");box.innerHTML="";documentDraftFiles.forEach(function(meta){fileLink(meta,box,true,function(m){documentDraftFiles=documentDraftFiles.filter(function(x){return x.id!==m.id});removeFile(m.id);renderDocumentDraft()})})}
+function renderDocumentDraft(){var box=$("doc-existing-files");box.innerHTML="";documentDraftFiles.forEach(function(meta){fileLink(meta,box,true,function(m){documentDraftFiles=documentDraftFiles.filter(function(x){return x.path!==m.path&&x.id!==m.id});removeFile(m).then(renderDocumentDraft).catch(function(e){alert("附件刪除失敗："+e.message)})})})}
 function resetDocumentForm(){editingDocument=null;documentDraftFiles=[];$("doc-form").reset();$("doc-save").textContent="新增文件";$("doc-editor-card").hidden=true;$("doc-existing-files").innerHTML=""}
 function renderDocuments(){
  var box=$("document-list");box.innerHTML="";
@@ -419,7 +466,7 @@ function renderDocuments(){
  box.querySelectorAll("[data-delete]").forEach(function(b){b.onclick=function(){if(confirm("確定刪除這份文件？")){var old=documents.splice(+b.dataset.delete,1)[0];(old.files||[]).forEach(function(m){removeFile(m.id)});save("sp-documents",JSON.stringify(documents));renderDocuments();resetDocumentForm()}}});
 }
 $("doc-add").onclick=function(){resetDocumentForm();$("doc-editor-card").hidden=false;$("doc-name").focus()};
-$("doc-files").onchange=async function(){try{var added=await storeFiles($("doc-files").files);documentDraftFiles=documentDraftFiles.concat(added);renderDocumentDraft();$("doc-files").value=""}catch(e){alert("附件儲存失敗，請重試")}};
+$("doc-files").onchange=async function(){try{var added=await storeFiles($("doc-files").files);documentDraftFiles=documentDraftFiles.concat(added);renderDocumentDraft();$("doc-files").value=""}catch(e){alert("附件上傳失敗："+e.message)}};
 $("doc-cancel").onclick=resetDocumentForm;
 $("doc-form").onsubmit=function(ev){ev.preventDefault();var d={name:$("doc-name").value.trim(),category:$("doc-category").value,note:$("doc-note").value.trim(),files:documentDraftFiles};if(editingDocument===null)documents.push(d);else documents[editingDocument]=d;save("sp-documents",JSON.stringify(documents));renderDocuments();resetDocumentForm()};
 renderDocuments();
