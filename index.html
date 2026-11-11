@@ -272,6 +272,25 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2'"></script>
 <script>
+/* SAPPORO29_DIAGNOSTIC */
+(function(){
+  function report(message, source, line, column){
+    var old=document.getElementById('sapporo29-error-panel');
+    if(old) return;
+    var panel=document.createElement('pre');
+    panel.id='sapporo29-error-panel';
+    panel.style.cssText='position:fixed;z-index:999999;inset:10px;background:#fff;color:#900;border:3px solid #900;padding:16px;white-space:pre-wrap;overflow:auto;font:14px monospace';
+    panel.textContent='札幌網站發生程式錯誤：\\n'+message+'\\n檔案：'+(source||'未知')+'\\n行：'+(line||'?')+'，欄：'+(column||'?');
+    (document.body||document.documentElement).appendChild(panel);
+  }
+  window.addEventListener('error',function(e){report(e.message||'載入或執行錯誤',e.filename,e.lineno,e.colno);});
+  window.addEventListener('unhandledrejection',function(e){
+    var reason=e.reason;
+    report('非同步錯誤：'+(reason&&reason.message?reason.message:String(reason)));
+  });
+})();
+</script>
+<script>
 var supabaseClient=null,currentUser=null;
 var authReady=Promise.resolve();
 if(window.supabase&&window.supabase.createClient){
