@@ -79,6 +79,23 @@ h2{font-size:22px;margin:0 0 12px;display:inline-block;background:var(--yellow);
 .rate-status{font-size:12px;margin:6px 0 10px}
 .category-row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed #aaa}
 .split-line{font-size:13px;background:var(--green);border-radius:12px;padding:7px 10px;margin-top:8px}
+.section-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px}
+.section-toolbar h2,.section-toolbar h3{margin:0}
+.section-toolbar .form-btn{flex:none}
+.sub-toolbar{margin-top:22px}
+.cl li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center}
+.cl li .item-actions{display:flex;gap:4px}
+.cl li .item-actions button{font-size:12px;padding:4px 7px}
+.editor[hidden],.card[hidden]{display:none!important}
+.file-list{display:grid;gap:7px}
+.file-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;border:2px solid var(--ink);border-radius:12px;background:var(--paper);font-size:13px}
+.file-item a{overflow-wrap:anywhere}
+.file-item button{font:inherit;border:2px solid var(--ink);border-radius:10px;background:var(--coral);padding:3px 7px;flex:none}
+.file-thumb{width:54px;height:54px;object-fit:cover;border:2px solid var(--ink);border-radius:9px}
+.entry .file-list{margin-top:8px}
+.item-actions button{font:inherit;color:var(--ink);border:2px solid var(--ink);border-radius:10px;background:var(--yellow);cursor:pointer}
+.item-actions button:last-child{background:var(--coral)}
+
 
 @keyframes pop{0%{transform:scale(.92) translateY(14px);opacity:0}60%{transform:scale(1.03) translateY(-3px);opacity:1}100%{transform:none}}
 @keyframes wob{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
@@ -176,21 +193,36 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
 <button class="info-tab" type="button" data-info="prep">🧳 行前準備</button>
 <button class="info-tab" type="button" data-info="documents">📄 旅行文件</button>
 </div>
-<div id="info-restaurants" class="subpage active"><section><h2>🍽 餐廳清單</h2>
-<div class="card"><form id="restaurant-form" class="editor">
+<div id="info-restaurants" class="subpage active"><section>
+<div class="section-toolbar"><h2>🍽 餐廳清單</h2><button class="form-btn" type="button" id="r-add">＋新增餐廳</button></div>
+<div class="card" id="restaurant-editor-card" hidden><form id="restaurant-form" class="editor">
 <label>餐廳名稱<input id="r-name" required placeholder="例如：成吉思汗烤肉"></label>
-<label>菜單<textarea id="r-menu" placeholder="推薦菜色、價格或菜單備註"></textarea></label>
-<label>Google 地圖連結<input id="r-map" type="url" placeholder="https://maps.google.com/..."></label>
-<div class="action-row"><button class="form-btn" type="submit" id="r-save">新增餐廳</button><button class="action-btn" type="button" id="r-cancel" hidden>取消編輯</button></div>
+<label>菜單／備註<textarea id="r-menu" placeholder="推薦菜色、價格或菜單備註"></textarea></label>
+<label>菜單照片或附件<input id="r-files" type="file" accept="image/*,.pdf" capture="environment" multiple><small class="muted">可直接拍照、從相簿選取或上傳 PDF，可選多個檔案</small></label><div id="r-file-list" class="file-list"></div>
+<label>Google 地圖連結<input id="r-map" type="url" placeholder="貼上 Google Maps 分享連結"><small class="muted" id="r-map-hint">支援可直接解析店名的 Google Maps 連結；短網址不一定能自動辨識。</small></label>
+<div class="action-row"><button class="form-btn" type="submit" id="r-save">新增餐廳</button><button class="action-btn" type="button" id="r-cancel">取消</button></div>
 </form></div><div id="restaurant-list"></div>
 </section></div>
-<div id="info-todos" class="subpage"><section id="lists"><h2>✅ 待辦事項</h2>
-<div class="tabs"><span class="tag B" style="font-size:13px">點選打勾，會記在這支手機上</span></div>
+<div id="info-todos" class="subpage"><section id="lists">
+<div class="section-toolbar"><h2>✅ 待辦事項</h2><button class="form-btn list-add" type="button" data-list-add="0">＋新增</button></div>
+<div class="tabs"><span class="tag B" style="font-size:13px">勾選完成狀態；每個項目均可編輯或刪除</span></div>
 <h3 style="margin:14px 0 6px">待確認事項</h3><p class="prog" id="p0"></p><ul class="cl" id="l0"></ul>
-<h3 style="margin:22px 0 6px">行前準備清單</h3><p class="prog" id="p1"></p><ul class="cl" id="l1"></ul>
+<div class="section-toolbar sub-toolbar"><h3>行前準備清單</h3><button class="form-btn list-add" type="button" data-list-add="1">＋新增</button></div><p class="prog" id="p1"></p><ul class="cl" id="l1"></ul>
 </section></div>
-<div id="info-prep" class="subpage"><section><h2>🧳 行李清單</h2><p class="prog" id="p2"></p><ul class="cl" id="l2"></ul></section></div>
-<div id="info-documents" class="subpage"><section><h2>📄 旅行文件</h2><div class="card"><p style="margin:0">集中整理護照、機票、住宿確認單、保險與票券等文件。文件上傳與多附件檢視功能可在下一階段加入。</p></div></section></div>
+<div id="info-prep" class="subpage"><section>
+<div class="section-toolbar"><h2>🧳 行李清單</h2><button class="form-btn list-add" type="button" data-list-add="2">＋新增</button></div>
+<p class="prog" id="p2"></p><ul class="cl" id="l2"></ul></section></div>
+<div id="info-documents" class="subpage"><section>
+<div class="section-toolbar"><h2>📄 旅行文件</h2><button class="form-btn" type="button" id="doc-add">＋新增文件</button></div>
+<div class="card" id="doc-editor-card" hidden><form id="doc-form" class="editor">
+<label>文件名稱<input id="doc-name" required placeholder="例如：來回機票、住宿確認單、旅遊保險"></label>
+<label>文件類別<select id="doc-category"><option>機票</option><option>住宿</option><option>護照／簽證</option><option>保險</option><option>交通票券</option><option>景點票券</option><option>其他</option></select></label>
+<label>備註<textarea id="doc-note" placeholder="文件說明、訂位編號等"></textarea></label>
+<label>新增／替換附件<input id="doc-files" type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"><small class="muted">可一次選取多個附件；編輯時新增的附件會保留原有附件</small></label>
+<div id="doc-existing-files" class="file-list"></div>
+<div class="action-row"><button class="form-btn" type="submit" id="doc-save">新增文件</button><button class="action-btn" type="button" id="doc-cancel">取消</button></div>
+</form></div><div id="document-list"></div>
+</section></div>
 </div>
 <div id="page-account" class="page"><section><h2>💰 旅行記帳</h2>
 <div class="summary-grid">
@@ -255,18 +287,26 @@ D.forEach(function(d,i){
   $("days").appendChild(b);
 });
 showDay(0,false);
-L.forEach(function(g,gi){
-  var ul=$(g[0]);
-  function prog(){var n=ul.querySelectorAll("input:checked").length;$("p"+gi).textContent="已完成 "+n+" / "+g[2].length}
-  g[2].forEach(function(t,i){
-    var k="sp-"+g[0]+"-"+i,li=document.createElement("li");
-    li.innerHTML='<label><input type="checkbox"><span>'+esc(t)+'</span></label>';
-    var c=li.querySelector("input");c.checked=load(k)==="1";
-    c.onchange=function(){save(k,c.checked?"1":"0");prog()};
-    ul.appendChild(li);
-  });
-  prog();
-});
+// Editable checklist items; migrate existing checked state without losing progress.
+var checklistData=L.map(function(g,gi){return g[2].map(function(t,i){return {id:"base-"+gi+"-"+i,text:t,checked:load("sp-"+g[0]+"-"+i)==="1"}})});
+var customLists=JSON.parse(load("sp-custom-lists")||"{}");
+function persistChecklist(){save("sp-checklist",JSON.stringify(checklistData));save("sp-custom-lists",JSON.stringify(customLists))}
+var savedChecklist=load("sp-checklist");if(savedChecklist){try{var parsed=JSON.parse(savedChecklist);if(Array.isArray(parsed)&&parsed.length===3)checklistData=parsed}catch(e){}}
+function renderChecklist(gi){
+ var ul=$(L[gi][0]);ul.innerHTML="";
+ checklistData[gi].forEach(function(item){
+  var li=document.createElement("li");li.innerHTML='<label><input type="checkbox"><span></span></label><div class="item-actions"><button type="button" data-edit>編輯</button><button type="button" data-del>刪除</button></div>';
+  var cb=li.querySelector("input"),span=li.querySelector("span");span.textContent=item.text;cb.checked=!!item.checked;
+  cb.onchange=function(){item.checked=cb.checked;persistChecklist();updateProgress(gi)};
+  li.querySelector("[data-edit]").onclick=function(){var v=prompt("修改項目",item.text);if(v!==null&&v.trim()){item.text=v.trim();persistChecklist();renderChecklist(gi)}};
+  li.querySelector("[data-del]").onclick=function(){if(confirm("確定刪除此項目？")){checklistData[gi]=checklistData[gi].filter(function(x){return x.id!==item.id});persistChecklist();renderChecklist(gi)}};
+  ul.appendChild(li);
+ });
+ updateProgress(gi);
+}
+function updateProgress(gi){var a=checklistData[gi],n=a.filter(function(x){return x.checked}).length;$("p"+gi).textContent="已完成 "+n+" / "+a.length}
+document.querySelectorAll("[data-list-add]").forEach(function(b){b.onclick=function(){var gi=+b.dataset.listAdd,v=prompt("輸入要新增的項目");if(v&&v.trim()){checklistData[gi].push({id:"custom-"+Date.now()+"-"+Math.random().toString(36).slice(2),text:v.trim(),checked:false});persistChecklist();renderChecklist(gi)}}});
+[0,1,2].forEach(renderChecklist);
 (function(){
   var now=new Date(),t=new Date(2027,1,9),s=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   var n=Math.round((t-s)/864e5),el=$("cd");
@@ -275,30 +315,73 @@ L.forEach(function(g,gi){
 })();
 
 
-// Information sub-tabs; restaurant is the default view.
+// IndexedDB stores uploaded files separately from localStorage to avoid its small storage quota.
+var fileDBPromise=new Promise(function(resolve,reject){
+ var req=indexedDB.open("sapporo29-files",1);
+ req.onupgradeneeded=function(){var db=req.result;if(!db.objectStoreNames.contains("files"))db.createObjectStore("files",{keyPath:"id"})};
+ req.onsuccess=function(){resolve(req.result)};req.onerror=function(){reject(req.error)};
+});
+function putFile(file){return fileDBPromise.then(function(db){return new Promise(function(resolve,reject){var id="f-"+Date.now()+"-"+Math.random().toString(36).slice(2);var tx=db.transaction("files","readwrite");tx.objectStore("files").put({id:id,blob:file,name:file.name,type:file.type,size:file.size});tx.oncomplete=function(){resolve({id:id,name:file.name,type:file.type,size:file.size})};tx.onerror=function(){reject(tx.error)}})})}
+function getFile(id){return fileDBPromise.then(function(db){return new Promise(function(resolve,reject){var r=db.transaction("files").objectStore("files").get(id);r.onsuccess=function(){resolve(r.result||null)};r.onerror=function(){reject(r.error)}})})}
+function removeFile(id){return fileDBPromise.then(function(db){return new Promise(function(resolve,reject){var tx=db.transaction("files","readwrite");tx.objectStore("files").delete(id);tx.oncomplete=resolve;tx.onerror=function(){reject(tx.error)}})})}
+function fileLink(meta,container,allowRemove,onRemove){
+ var row=document.createElement("div");row.className="file-item";
+ var name=document.createElement("span");name.textContent="📎 "+meta.name;row.appendChild(name);
+ var actions=document.createElement("div");actions.className="action-row";actions.style.margin="0";
+ getFile(meta.id).then(function(rec){if(!rec)return;var url=URL.createObjectURL(rec.blob);var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.textContent=rec.type&&rec.type.indexOf("image/")===0?"查看照片":"開啟／下載";a.download=rec.name;actions.appendChild(a)});
+ if(allowRemove){var b=document.createElement("button");b.type="button";b.textContent="移除";b.onclick=function(){onRemove(meta)};actions.appendChild(b)}
+ row.appendChild(actions);container.appendChild(row);
+}
+function storeFiles(fileList){return Promise.all(Array.from(fileList||[]).map(putFile))}
 function activateInfo(name){
  document.querySelectorAll(".info-tab").forEach(function(b){b.classList.toggle("active",b.dataset.info===name)});
  document.querySelectorAll("#page-info .subpage").forEach(function(p){p.classList.toggle("active",p.id==="info-"+name)});
 }
 document.querySelectorAll(".info-tab").forEach(function(b){b.addEventListener("click",function(){activateInfo(b.dataset.info)})});
 
-// Restaurant CRUD, persisted in this browser.
-var restaurants=JSON.parse(load("sp-restaurants")||"[]"), editingRestaurant=null;
+// Restaurant CRUD, including photo/PDF attachments.
+var restaurants=JSON.parse(load("sp-restaurants")||"[]"), editingRestaurant=null,restaurantDraftFiles=[];
 function saveRestaurants(){save("sp-restaurants",JSON.stringify(restaurants));renderRestaurants()}
 function renderRestaurants(){
  var box=$("restaurant-list");box.innerHTML="";
  if(!restaurants.length){box.innerHTML='<div class="empty">尚未新增餐廳</div>';return}
  restaurants.forEach(function(r,i){
   var el=document.createElement("div");el.className="entry";
-  el.innerHTML="<h3>"+esc(r.name)+"</h3>"+(r.menu?'<p><b>菜單／備註：</b>'+esc(r.menu)+'</p>':"")+(r.map?'<p><a target="_blank" rel="noopener" href="'+esc(r.map)+'">📍 開啟 Google 地圖</a></p>':"")+'<div class="action-row"><button class="action-btn" data-edit="'+i+'">編輯</button><button class="action-btn delete" data-delete="'+i+'">刪除</button></div>';
-  box.appendChild(el);
+  el.innerHTML="<h3>"+esc(r.name)+"</h3>"+(r.menu?'<p><b>菜單／備註：</b>'+esc(r.menu)+'</p>':"")+(r.map?'<p><a target="_blank" rel="noopener" href="'+esc(r.map)+'">📍 開啟 Google 地圖</a></p>':"")+'<div class="file-list"></div><div class="action-row"><button class="action-btn" data-edit="'+i+'">編輯</button><button class="action-btn delete" data-delete="'+i+'">刪除</button></div>';
+  box.appendChild(el);(r.files||[]).forEach(function(meta){fileLink(meta,el.querySelector(".file-list"),false)});
  });
- box.querySelectorAll("[data-edit]").forEach(function(b){b.onclick=function(){var r=restaurants[+b.dataset.edit];editingRestaurant=+b.dataset.edit;$("r-name").value=r.name;$("r-menu").value=r.menu;$("r-map").value=r.map;$("r-save").textContent="儲存修改";$("r-cancel").hidden=false;activateInfo("restaurants");window.scrollTo({top:0,behavior:"smooth"})}});
+ box.querySelectorAll("[data-edit]").forEach(function(b){b.onclick=function(){var r=restaurants[+b.dataset.edit];editingRestaurant=+b.dataset.edit;$("r-name").value=r.name;$("r-menu").value=r.menu;$("r-map").value=r.map;restaurantDraftFiles=(r.files||[]).slice();renderRestaurantDraft();$("r-save").textContent="儲存修改";$("restaurant-editor-card").hidden=false;activateInfo("restaurants");window.scrollTo({top:0,behavior:"smooth"})}});
  box.querySelectorAll("[data-delete]").forEach(function(b){b.onclick=function(){if(confirm("確定刪除這筆餐廳資料？")){restaurants.splice(+b.dataset.delete,1);saveRestaurants();resetRestaurantForm()}}});
 }
-function resetRestaurantForm(){editingRestaurant=null;$("restaurant-form").reset();$("r-save").textContent="新增餐廳";$("r-cancel").hidden=true}
-$("restaurant-form").onsubmit=function(ev){ev.preventDefault();var r={name:$("r-name").value.trim(),menu:$("r-menu").value.trim(),map:$("r-map").value.trim()};if(editingRestaurant===null)restaurants.push(r);else restaurants[editingRestaurant]=r;saveRestaurants();resetRestaurantForm()};
+function renderRestaurantDraft(){var box=$("r-file-list");box.innerHTML="";restaurantDraftFiles.forEach(function(meta){fileLink(meta,box,true,function(m){restaurantDraftFiles=restaurantDraftFiles.filter(function(x){return x.id!==m.id});removeFile(m.id);renderRestaurantDraft()})})}
+function resetRestaurantForm(){editingRestaurant=null;restaurantDraftFiles=[];$("restaurant-form").reset();$("r-save").textContent="新增餐廳";$("restaurant-editor-card").hidden=true;$("r-file-list").innerHTML=""}
+$("r-add").onclick=function(){resetRestaurantForm();$("restaurant-editor-card").hidden=false;$("r-name").focus()};
+$("r-files").onchange=async function(){try{var added=await storeFiles($("r-files").files);restaurantDraftFiles=restaurantDraftFiles.concat(added);renderRestaurantDraft();$("r-files").value=""}catch(e){alert("附件儲存失敗，請重試")} };
+function extractMapName(url){
+ try{var u=new URL(url);var p=decodeURIComponent(u.pathname);var m=p.match(/\/place\/([^/]+)/);if(m)return m[1].replace(/\+/g," ");var q=u.searchParams.get("query")||u.searchParams.get("q")||u.searchParams.get("destination");if(q)return q.split(",")[0].trim()}catch(e){}
+ return "";
+}
+$("r-map").addEventListener("change",function(){var n=extractMapName(this.value.trim());if(n&&!$("r-name").value.trim())$("r-name").value=n});
+$("r-map").addEventListener("paste",function(){var input=this;setTimeout(function(){var n=extractMapName(input.value.trim());if(n&&!$("r-name").value.trim())$("r-name").value=n},0)});
+$("restaurant-form").onsubmit=async function(ev){ev.preventDefault();var r={name:$("r-name").value.trim(),menu:$("r-menu").value.trim(),map:$("r-map").value.trim(),files:restaurantDraftFiles};if(editingRestaurant===null)restaurants.push(r);else restaurants[editingRestaurant]=r;saveRestaurants();resetRestaurantForm()};
 $("r-cancel").onclick=resetRestaurantForm;renderRestaurants();
+
+// Travel documents CRUD with multiple IndexedDB-backed attachments.
+var documents=JSON.parse(load("sp-documents")||"[]"),editingDocument=null,documentDraftFiles=[];
+function renderDocumentDraft(){var box=$("doc-existing-files");box.innerHTML="";documentDraftFiles.forEach(function(meta){fileLink(meta,box,true,function(m){documentDraftFiles=documentDraftFiles.filter(function(x){return x.id!==m.id});removeFile(m.id);renderDocumentDraft()})})}
+function resetDocumentForm(){editingDocument=null;documentDraftFiles=[];$("doc-form").reset();$("doc-save").textContent="新增文件";$("doc-editor-card").hidden=true;$("doc-existing-files").innerHTML=""}
+function renderDocuments(){
+ var box=$("document-list");box.innerHTML="";
+ if(!documents.length){box.innerHTML='<div class="empty">尚未新增旅行文件</div>';return}
+ documents.forEach(function(d,i){var el=document.createElement("div");el.className="entry";el.innerHTML="<h3>"+esc(d.name)+"</h3>"+'<span class="tag B">'+esc(d.category||"其他")+"</span>"+(d.note?'<p>'+esc(d.note)+'</p>':"")+'<div class="file-list"></div><div class="action-row"><button class="action-btn" data-edit="'+i+'">編輯</button><button class="action-btn delete" data-delete="'+i+'">刪除</button></div>';box.appendChild(el);(d.files||[]).forEach(function(meta){fileLink(meta,el.querySelector(".file-list"),false)})});
+ box.querySelectorAll("[data-edit]").forEach(function(b){b.onclick=function(){var d=documents[+b.dataset.edit];editingDocument=+b.dataset.edit;$("doc-name").value=d.name;$("doc-category").value=d.category;$("doc-note").value=d.note||"";documentDraftFiles=(d.files||[]).slice();renderDocumentDraft();$("doc-save").textContent="儲存修改";$("doc-editor-card").hidden=false;window.scrollTo({top:0,behavior:"smooth"})}});
+ box.querySelectorAll("[data-delete]").forEach(function(b){b.onclick=function(){if(confirm("確定刪除這份文件？")){documents.splice(+b.dataset.delete,1);save("sp-documents",JSON.stringify(documents));renderDocuments();resetDocumentForm()}}});
+}
+$("doc-add").onclick=function(){resetDocumentForm();$("doc-editor-card").hidden=false;$("doc-name").focus()};
+$("doc-files").onchange=async function(){try{var added=await storeFiles($("doc-files").files);documentDraftFiles=documentDraftFiles.concat(added);renderDocumentDraft();$("doc-files").value=""}catch(e){alert("附件儲存失敗，請重試")}};
+$("doc-cancel").onclick=resetDocumentForm;
+$("doc-form").onsubmit=function(ev){ev.preventDefault();var d={name:$("doc-name").value.trim(),category:$("doc-category").value,note:$("doc-note").value.trim(),files:documentDraftFiles};if(editingDocument===null)documents.push(d);else documents[editingDocument]=d;save("sp-documents",JSON.stringify(documents));renderDocuments();resetDocumentForm()};
+renderDocuments();
 
 // Expense ledger. Exchange rates are fetched from open.er-api.com; saved per record.
 var expenses=JSON.parse(load("sp-expenses")||"[]"),rates={TWD:1},rateDate="",editingExpense=null;
