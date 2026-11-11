@@ -392,7 +392,7 @@ async function fileLink(meta,container,allowRemove,onRemove){
   if(!result.error){var a=document.createElement("a");a.href=result.data.signedUrl;a.target="_blank";a.rel="noopener";a.textContent=meta.type&&meta.type.indexOf("image/")===0?"查看照片":"開啟／下載";a.download=meta.name;actions.appendChild(a)}
   else{name.textContent+="（無法讀取，請確認登入帳戶）"}
  }else if(meta.id){
-  var rec=await getFile(meta.id);if(rec){var url=URL.createObjectURL(rec.blob);var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.textContent=rec.type&&rec.type.indexOf("image/")===0?"查看照片":"開啟／下載";a.download=rec.name;actions.appendChild(a);var migrate=document.createElement("button");migrate.type="button";migrate.textContent="搬到雲端";migrate.onclick=async function(){try{var cloud=await putFile(new File([rec.blob],rec.name,{type:rec.type}));onRemove(meta);alert("已上傳雲端，請重新儲存該筆資料以保留雲端附件。")}catch(e){alert("搬移失敗："+e.message)}};actions.appendChild(migrate)}else{name.textContent+="（舊裝置附件不存在）"}
+  var rec=await getFile(meta.id);if(rec){var url=URL.createObjectURL(rec.blob);var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.textContent=rec.type&&rec.type.indexOf("image/")===0?"查看照片":"開啟／下載";a.download=rec.name;actions.appendChild(a);var legacy=document.createElement("small");legacy.className="muted";legacy.textContent="舊版本機附件";actions.appendChild(legacy)}else{name.textContent+="（舊裝置附件不存在）"}
  }
  if(allowRemove){var b=document.createElement("button");b.type="button";b.textContent="移除";b.onclick=function(){onRemove(meta)};actions.appendChild(b)}
  row.appendChild(actions);container.appendChild(row);
