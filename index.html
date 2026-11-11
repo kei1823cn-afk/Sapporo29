@@ -334,7 +334,7 @@ function renderExpenses(){
  if(!expenses.length){box.innerHTML='<div class="empty">尚未新增支出</div>';return}
  expenses.forEach(function(e,i){
   var el=document.createElement("div");el.className="entry";
-  el.innerHTML='<h3>'+esc(e.item)+'</h3><p><span class="tag B">'+esc(e.category)+'</span> '+Number(e.amount).toLocaleString("zh-TW")+" "+esc(e.currency)+'</p><p><b>台幣折算："+money(e.twd)+'</b> <span class="muted">（匯率 '+Number(e.rate).toFixed(4)+'）</span></p><div class="split-line">均分 '+e.people+' 人｜每人 '+money(e.twd/e.people)+'</div>'+(e.note?'<p>備註：'+esc(e.note)+'</p>':"")+'<div class="action-row"><button class="action-btn" data-edit="'+i+'">編輯</button><button class="action-btn delete" data-delete="'+i+'">刪除</button></div>';
+  el.innerHTML='<h3>'+esc(e.item)+'</h3><p><span class="tag B">'+esc(e.category)+'</span> '+Number(e.amount).toLocaleString("zh-TW")+" "+esc(e.currency)+'</p><p><b>台幣折算：'+money(e.twd)+'+'</b> <span class="muted">（匯率 '+Number(e.rate).toFixed(4)+'）</span></p><div class="split-line">均分 '+e.people+' 人｜每人 '+money(e.twd/e.people)+'</div>'+(e.note?'<p>備註：'+esc(e.note)+'</p>':"")+'<div class="action-row"><button class="action-btn" data-edit="'+i+'">編輯</button><button class="action-btn delete" data-delete="'+i+'">刪除</button></div>';
   box.appendChild(el);
  });
  box.querySelectorAll("[data-edit]").forEach(function(b){b.onclick=function(){var e=expenses[+b.dataset.edit];editingExpense=+b.dataset.edit;$("e-item").value=e.item;$("e-category").value=e.category;$("e-amount").value=e.amount;$("e-currency").value=e.currency;$("e-people").value=e.people;$("e-note").value=e.note;$("e-save").textContent="儲存修改";$("e-cancel").hidden=false;updateExpensePreview();window.scrollTo({top:0,behavior:"smooth"})}});
