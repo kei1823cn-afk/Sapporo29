@@ -270,19 +270,24 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
 </section></div>
 <p class="note">雪祭 2027 年舉辦期間為 2/4 – 2/11；冰濤祭 1/30 – 2/23。<br>實際時間以官方公告為準。</p>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2'"></script>
 <script>
-var supabaseClient=window.supabase.createClient("https://sdbvgroidwbodmvqqsaz.supabase.co","sb_publishable_uAQfi9iJ8DBxy-ROrvZQ4Q_sh6NIb3a");
-var currentUser=null;
-supabaseClient.auth.onAuthStateChange(function(event,session){currentUser=session&&session.user?session.user:null});
-var authReady=(async function(){
- var existing=await supabaseClient.auth.getSession();
- if(existing.error)throw existing.error;
- if(existing.data.session){currentUser=existing.data.session.user;return}
- var guest=await supabaseClient.auth.signInAnonymously();
- if(guest.error)throw new Error("訪客工作階段建立失敗："+guest.error.message+"。請確認 Supabase 已啟用 Anonymous Sign-Ins。");
- currentUser=guest.data.user;
-})();
+var supabaseClient=null,currentUser=null;
+var authReady=Promise.resolve();
+if(window.supabase&&window.supabase.createClient){
+ supabaseClient=window.supabase.createClient("https://sdbvgroidwbodmvqqsaz.supabase.co","sb_publishable_uAQfi9iJ8DBxy-ROrvZQ4Q_sh6NIb3a");
+ supabaseClient.auth.onAuthStateChange(function(event,session){currentUser=session&&session.user?session.user:null});
+ authReady=(async function(){
+  var existing=await supabaseClient.auth.getSession();
+  if(existing.error)throw existing.error;
+  if(existing.data.session){currentUser=existing.data.session.user;return}
+  var guest=await supabaseClient.auth.signInAnonymously();
+  if(guest.error)throw new Error("訪客工作階段建立失敗："+guest.error.message+"。請確認 Supabase 已啟用 Anonymous Sign-Ins。");
+  currentUser=guest.data.user;
+ })();
+}else{
+ console.error("Supabase SDK 載入失敗；網站基本功能仍可使用，雲端附件暫不可用。");
+}
 var TG={J:"JR",S:"地鐵",B:"巴士",W:"步行",C:"纜車",F:"飛機"};
 var D=[
 ["2/9","二","抵達札幌＋雪祭初體驗",[["下午","搭 BR116 抵達新千歲機場，搭 JR 前往札幌，入住薄野 Comfort Hotel","FJ"],["晚上","步行至大通公園看雪祭雪雕與點燈，順逛薄野冰雕會場","W",1],["晚餐","湯咖哩","" ]]],
@@ -361,14 +366,15 @@ function removeLegacyFile(id){return fileDBPromise.then(function(db){return new 
 function safeFileName(name){return String(name||"file").replace(/[^\\w.\\-()\\u4e00-\\u9fff]/g,"_").slice(0,100)}
 async function putFile(file){
  await authReady;
- if(!currentUser)throw new Error("請先登入雲端附件帳戶");
+ if(!supabaseClient)throw new Error("雲端附件服務載入失敗，請重新整理頁面或稍後再試。");
+ if(!currentUser)throw new Error("訪客工作階段尚未建立，請重新整理頁面。");
  var path="shared/"+crypto.randomUUID()+"_"+safeFileName(file.name);
  var result=await supabaseClient.storage.from("trip-files").upload(path,file,{contentType:file.type||"application/octet-stream",upsert:false});
  if(result.error)throw result.error;
  return {path:path,name:file.name,type:file.type,size:file.size,storage:"supabase"};
 }
 async function removeFile(meta){
- if(meta&&meta.storage==="supabase"&&meta.path){var r=await supabaseClient.storage.from("trip-files").remove([meta.path]);if(r.error)throw r.error;return}
+ if(meta&&meta.storage==="supabase"&&meta.path){if(!supabaseClient)throw new Error("雲端附件服務未載入");var r=await supabaseClient.storage.from("trip-files").remove([meta.path]);if(r.error)throw r.error;return}
  if(meta&&meta.id)await removeLegacyFile(meta.id);
 }
 async function fileLink(meta,container,allowRemove,onRemove){
@@ -376,9 +382,11 @@ async function fileLink(meta,container,allowRemove,onRemove){
  var name=document.createElement("span");name.textContent="📎 "+meta.name;row.appendChild(name);
  var actions=document.createElement("div");actions.className="action-row";actions.style.margin="0";
  if(meta.storage==="supabase"&&meta.path){
+  if(!supabaseClient){name.textContent+="（雲端附件服務未載入，請重新整理）"}else{
   var result=await supabaseClient.storage.from("trip-files").createSignedUrl(meta.path,3600);
   if(!result.error){var a=document.createElement("a");a.href=result.data.signedUrl;a.target="_blank";a.rel="noopener";a.textContent=meta.type&&meta.type.indexOf("image/")===0?"查看照片":"開啟／下載";a.download=meta.name;actions.appendChild(a)}
   else{name.textContent+="（無法讀取，請確認 Supabase Storage 共用資料夾權限）"}
+  }
  }else if(meta.id){
   var rec=await getFile(meta.id);if(rec){var url=URL.createObjectURL(rec.blob);var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.textContent=rec.type&&rec.type.indexOf("image/")===0?"查看照片":"開啟／下載";a.download=rec.name;actions.appendChild(a);var legacy=document.createElement("small");legacy.className="muted";legacy.textContent="舊版本機附件";actions.appendChild(legacy)}else{name.textContent+="（舊裝置附件不存在）"}
  }
