@@ -351,7 +351,7 @@ function renderRestaurants(){
   box.appendChild(el);(r.files||[]).forEach(function(meta){fileLink(meta,el.querySelector(".file-list"),false)});
  });
  box.querySelectorAll("[data-edit]").forEach(function(b){b.onclick=function(){var r=restaurants[+b.dataset.edit];editingRestaurant=+b.dataset.edit;$("r-name").value=r.name;$("r-menu").value=r.menu;$("r-map").value=r.map;restaurantDraftFiles=(r.files||[]).slice();renderRestaurantDraft();$("r-save").textContent="儲存修改";$("restaurant-editor-card").hidden=false;activateInfo("restaurants");window.scrollTo({top:0,behavior:"smooth"})}});
- box.querySelectorAll("[data-delete]").forEach(function(b){b.onclick=function(){if(confirm("確定刪除這筆餐廳資料？")){restaurants.splice(+b.dataset.delete,1);saveRestaurants();resetRestaurantForm()}}});
+ box.querySelectorAll("[data-delete]").forEach(function(b){b.onclick=function(){if(confirm("確定刪除這筆餐廳資料？")){var old=restaurants.splice(+b.dataset.delete,1)[0];(old.files||[]).forEach(function(m){removeFile(m.id)});saveRestaurants();resetRestaurantForm()}}});
 }
 function renderRestaurantDraft(){var box=$("r-file-list");box.innerHTML="";restaurantDraftFiles.forEach(function(meta){fileLink(meta,box,true,function(m){restaurantDraftFiles=restaurantDraftFiles.filter(function(x){return x.id!==m.id});removeFile(m.id);renderRestaurantDraft()})})}
 function resetRestaurantForm(){editingRestaurant=null;restaurantDraftFiles=[];$("restaurant-form").reset();$("r-save").textContent="新增餐廳";$("restaurant-editor-card").hidden=true;$("r-file-list").innerHTML=""}
@@ -375,7 +375,7 @@ function renderDocuments(){
  if(!documents.length){box.innerHTML='<div class="empty">尚未新增旅行文件</div>';return}
  documents.forEach(function(d,i){var el=document.createElement("div");el.className="entry";el.innerHTML="<h3>"+esc(d.name)+"</h3>"+'<span class="tag B">'+esc(d.category||"其他")+"</span>"+(d.note?'<p>'+esc(d.note)+'</p>':"")+'<div class="file-list"></div><div class="action-row"><button class="action-btn" data-edit="'+i+'">編輯</button><button class="action-btn delete" data-delete="'+i+'">刪除</button></div>';box.appendChild(el);(d.files||[]).forEach(function(meta){fileLink(meta,el.querySelector(".file-list"),false)})});
  box.querySelectorAll("[data-edit]").forEach(function(b){b.onclick=function(){var d=documents[+b.dataset.edit];editingDocument=+b.dataset.edit;$("doc-name").value=d.name;$("doc-category").value=d.category;$("doc-note").value=d.note||"";documentDraftFiles=(d.files||[]).slice();renderDocumentDraft();$("doc-save").textContent="儲存修改";$("doc-editor-card").hidden=false;window.scrollTo({top:0,behavior:"smooth"})}});
- box.querySelectorAll("[data-delete]").forEach(function(b){b.onclick=function(){if(confirm("確定刪除這份文件？")){documents.splice(+b.dataset.delete,1);save("sp-documents",JSON.stringify(documents));renderDocuments();resetDocumentForm()}}});
+ box.querySelectorAll("[data-delete]").forEach(function(b){b.onclick=function(){if(confirm("確定刪除這份文件？")){var old=documents.splice(+b.dataset.delete,1)[0];(old.files||[]).forEach(function(m){removeFile(m.id)});save("sp-documents",JSON.stringify(documents));renderDocuments();resetDocumentForm()}}});
 }
 $("doc-add").onclick=function(){resetDocumentForm();$("doc-editor-card").hidden=false;$("doc-name").focus()};
 $("doc-files").onchange=async function(){try{var added=await storeFiles($("doc-files").files);documentDraftFiles=documentDraftFiles.concat(added);renderDocumentDraft();$("doc-files").value=""}catch(e){alert("附件儲存失敗，請重試")}};
