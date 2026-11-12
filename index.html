@@ -389,9 +389,10 @@ async function putFile(file){
  if(!supabaseClient)throw new Error("雲端附件服務載入失敗，請重新整理頁面或稍後再試。");
  if(!currentUser)throw new Error("訪客工作階段尚未建立，請重新整理頁面。");
  var path="shared/"+crypto.randomUUID()+"_"+safeFileName(file.name);
- var result=await supabaseClient.storage.from("trip-files").upload(path,file,{contentType:detectFileType(file),upsert:false});
- if(result.error)throw result.error;
- return {path:path,name:file.name,type:file.type,size:file.size,storage:"supabase"};
+ var mime=detectFileType(file);
+ var result=await supabaseClient.storage.from("trip-files").upload(path,file,{contentType:mime,upsert:false});
+ if(result.error){var detail=[result.error.message,result.error.error,result.error.statusCode?"HTTP "+result.error.statusCode:""].filter(Boolean).join("；");throw new Error("上傳 "+file.name+" 失敗（"+mime+"）："+(detail||"Supabase Storage 未提供詳細原因"))}
+ return {path:path,name:file.name,type:mime,size:file.size,storage:"supabase"};
 }
 async function removeFile(meta){
  if(meta&&meta.storage==="supabase"&&meta.path){if(!supabaseClient)throw new Error("雲端附件服務未載入");var r=await supabaseClient.storage.from("trip-files").remove([meta.path]);if(r.error)throw r.error;return}
@@ -435,7 +436,7 @@ function renderRestaurants(){
  box.querySelectorAll("[data-edit]").forEach(function(b){b.onclick=function(){var r=restaurants[+b.dataset.edit];editingRestaurant=+b.dataset.edit;restaurantOriginalFiles=(r.files||[]).slice();$("r-name").value=r.name;$("r-menu").value=r.menu;$("r-map").value=r.map;restaurantDraftFiles=(r.files||[]).slice();renderRestaurantDraft();$("r-save").textContent="儲存修改";$("r-editor-title").textContent="編輯餐廳";activateInfo("restaurant-editor");window.scrollTo({top:0,behavior:"smooth"})}});
  box.querySelectorAll("[data-delete]").forEach(function(b){b.onclick=function(){if(confirm("確定刪除這筆餐廳資料？")){var old=restaurants.splice(+b.dataset.delete,1)[0];(old.files||[]).forEach(function(m){removeFile(m).catch(function(e){alert("附件刪除失敗："+e.message)})});saveRestaurants();resetRestaurantForm()}}});
 }
-function renderRestaurantDraft(){var box=$("r-file-list");box.innerHTML="";restaurantDraftFiles.forEach(function(meta){fileLink(meta,box,true,function(m){restaurantDraftFiles=restaurantDraftFiles.filter(function(x){return x.path!==m.path&&x.id!==m.id});renderRestaurantDraft()})})}
+function renderRestaurantDraft(){var box=$("r-file-list");box.innerHTML="";restaurantDraftFiles.forEach(function(meta){fileLink(meta,box,true,function(m){restaurantDraftFiles=restaurantDraftFiles.filter(function(x){return m.path?x.path!==m.path:x.id!==m.id});renderRestaurantDraft()})})}
 function showRestaurantEditor(){activateInfo("restaurant-editor");$("r-name").focus()}
 function resetRestaurantForm(){restaurantDraftFiles.filter(function(m){return !restaurantOriginalFiles.some(function(o){return (o.path&&o.path===m.path)||(o.id&&o.id===m.id)})}).forEach(function(m){removeFile(m).catch(function(e){console.warn("取消編輯時清理新附件失敗",e)})});editingRestaurant=null;restaurantDraftFiles=[];restaurantOriginalFiles=[];$("restaurant-form").reset();$("r-save").textContent="新增餐廳";$("r-editor-title").textContent="新增餐廳";$("r-file-list").innerHTML=""}
 $("r-add").onclick=function(){resetRestaurantForm();showRestaurantEditor()};
@@ -472,7 +473,7 @@ renderRestaurants();
 
 // Travel documents CRUD with multiple IndexedDB-backed attachments.
 var documents=JSON.parse(load("sp-documents")||"[]"),editingDocument=null,documentDraftFiles=[],documentOriginalFiles=[];
-function renderDocumentDraft(){var box=$("doc-existing-files");box.innerHTML="";documentDraftFiles.forEach(function(meta){fileLink(meta,box,true,function(m){documentDraftFiles=documentDraftFiles.filter(function(x){return x.path!==m.path&&x.id!==m.id});renderDocumentDraft()})})}
+function renderDocumentDraft(){var box=$("doc-existing-files");box.innerHTML="";documentDraftFiles.forEach(function(meta){fileLink(meta,box,true,function(m){documentDraftFiles=documentDraftFiles.filter(function(x){return m.path?x.path!==m.path:x.id!==m.id});renderDocumentDraft()})})}
 function resetDocumentForm(){documentDraftFiles.filter(function(m){return !documentOriginalFiles.some(function(o){return (o.path&&o.path===m.path)||(o.id&&o.id===m.id)})}).forEach(function(m){removeFile(m).catch(function(e){console.warn("取消文件編輯時清理新附件失敗",e)})});editingDocument=null;documentDraftFiles=[];documentOriginalFiles=[];$("doc-form").reset();$("doc-save").textContent="新增文件";$("doc-editor-card").hidden=true;$("doc-existing-files").innerHTML=""}
 function renderDocuments(){
  var box=$("document-list");box.innerHTML="";
