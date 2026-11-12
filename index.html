@@ -70,6 +70,13 @@ h2{font-size:22px;margin:0 0 12px;display:inline-block;background:var(--yellow);
 .editor input,.editor textarea,.editor select{width:100%;font:inherit;color:var(--ink);background:white;border:2px solid var(--ink);border-radius:12px;padding:8px}
 .editor textarea{min-height:72px;resize:vertical}
 .entry{border:3px solid var(--ink);border-radius:20px;padding:12px;margin:10px 0;background:#fff}
+.restaurant-row{display:flex;align-items:center;gap:12px;width:100%;margin:9px 0;padding:9px 12px;border:3px solid var(--ink);border-radius:20px;background:#fff;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.restaurant-row:active{transform:scale(.99)}
+.restaurant-thumb{width:62px;height:62px;flex:none;object-fit:cover;border:2px solid var(--ink);border-radius:14px;background:var(--sky)}
+.restaurant-thumb-placeholder{display:grid;place-items:center;font-size:26px}
+.restaurant-row strong{font-size:17px}
+.restaurant-detail-title{margin:0 0 8px;font-size:21px}
+
 .entry h3{margin:0 0 4px}.entry p{margin:4px 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .entry a{overflow-wrap:anywhere}
 .summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
@@ -206,6 +213,10 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
 <div class="section-toolbar"><h2>🍽 餐廳清單</h2><button class="form-btn" type="button" id="r-add">＋新增餐廳</button></div>
 <div id="restaurant-list"></div>
 </section></div>
+<div id="info-restaurant-detail" class="subpage"><section>
+<div class="section-toolbar"><h2>🍽 餐廳資訊</h2><button class="action-btn" type="button" id="r-detail-back">← 返回清單</button></div>
+<div id="restaurant-detail-content"></div>
+</section></div>
 <div id="info-restaurant-editor" class="subpage"><section>
 <div class="section-toolbar"><h2 id="r-editor-title">新增餐廳</h2><button class="action-btn" type="button" id="r-back">← 返回清單</button></div>
 <div class="card"><form id="restaurant-form" class="editor">
@@ -268,7 +279,7 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
 <section><h2>🧾 支出明細</h2><div id="expense-list"></div></section>
 <p class="muted">匯率採用公開匯率 API 的最新報價（通常每日更新），每筆支出會保存建立當下的換算匯率，避免日後匯率變動造成舊帳金額改變。</p>
 </section></div>
-<p class="note">雪祭 2027 年舉辦期間為 2/4 – 2/11；冰濤祭 1/30 – 2/23。<br>實際時間以官方公告為準。</p>
+
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2'"></script>
 <script>
@@ -429,13 +440,60 @@ function renderRestaurants(){
  var box=$("restaurant-list");box.innerHTML="";
  if(!restaurants.length){box.innerHTML='<div class="empty">尚未新增餐廳</div>';return}
  restaurants.forEach(function(r,i){
-  var el=document.createElement("div");el.className="entry";
-  el.innerHTML="<h3>"+esc(r.name)+"</h3>"+(r.menu?'<p><b>菜單／備註：</b>'+esc(r.menu)+'</p>':"")+(r.map?'<p><a target="_blank" rel="noopener" href="'+esc(r.map)+'">📍 開啟 Google 地圖</a></p>':"")+'<div class="file-list"></div><div class="action-row"><button class="action-btn" data-edit="'+i+'">編輯</button><button class="action-btn delete" data-delete="'+i+'">刪除</button></div>';
-  box.appendChild(el);(r.files||[]).forEach(function(meta){fileLink(meta,el.querySelector(".file-list"),false)});
+  var row=document.createElement("button");row.type="button";row.className="restaurant-row";
+  var imageMeta=(r.files||[]).find(function(m){return m.type&&m.type.indexOf("image/")===0});
+  if(imageMeta){
+   var img=document.createElement("img");img.className="restaurant-thumb";img.alt="";
+   row.appendChild(img);loadRestaurantThumb(imageMeta,img);
+  }else{
+   var placeholder=document.createElement("span");placeholder.className="restaurant-thumb restaurant-thumb-placeholder";placeholder.textContent="🍽";placeholder.setAttribute("aria-hidden","true");row.appendChild(placeholder);
+  }
+  var title=document.createElement("strong");title.textContent=r.name;row.appendChild(title);
+  row.onclick=function(){renderRestaurantDetail(i)};
+  box.appendChild(row);
  });
- box.querySelectorAll("[data-edit]").forEach(function(b){b.onclick=function(){var r=restaurants[+b.dataset.edit];editingRestaurant=+b.dataset.edit;restaurantOriginalFiles=(r.files||[]).slice();$("r-name").value=r.name;$("r-menu").value=r.menu;$("r-map").value=r.map;restaurantDraftFiles=(r.files||[]).slice();renderRestaurantDraft();$("r-save").textContent="儲存修改";$("r-editor-title").textContent="編輯餐廳";activateInfo("restaurant-editor");window.scrollTo({top:0,behavior:"smooth"})}});
- box.querySelectorAll("[data-delete]").forEach(function(b){b.onclick=function(){if(confirm("確定刪除這筆餐廳資料？")){var old=restaurants.splice(+b.dataset.delete,1)[0];(old.files||[]).forEach(function(m){removeFile(m).catch(function(e){alert("附件刪除失敗："+e.message)})});saveRestaurants();resetRestaurantForm()}}});
 }
+async function loadRestaurantThumb(meta,img){
+ try{
+  if(meta.storage==="supabase"&&meta.path&&supabaseClient){
+   var result=await supabaseClient.storage.from("trip-files").createSignedUrl(meta.path,3600);
+   if(!result.error)img.src=result.data.signedUrl;
+  }else if(meta.id){
+   var rec=await getFile(meta.id);if(rec){img.src=URL.createObjectURL(rec.blob)}
+  }
+ }catch(e){img.style.display="none"}
+}
+function renderRestaurantDetail(index){
+ var r=restaurants[index];if(!r)return;
+ var box=$("restaurant-detail-content");box.innerHTML="";
+ var card=document.createElement("div");card.className="entry";
+ var title=document.createElement("h3");title.className="restaurant-detail-title";title.textContent=r.name;card.appendChild(title);
+ if(r.menu){var menu=document.createElement("p");menu.textContent="菜單／備註："+r.menu;card.appendChild(menu)}
+ if(r.map){var map=document.createElement("p");var link=document.createElement("a");link.href=r.map;link.target="_blank";link.rel="noopener";link.textContent="📍 開啟 Google 地圖";map.appendChild(link);card.appendChild(map)}
+ var files=document.createElement("div");files.className="file-list";card.appendChild(files);
+ (r.files||[]).forEach(function(meta){fileLink(meta,files,false)});
+ var actions=document.createElement("div");actions.className="action-row";
+ var edit=document.createElement("button");edit.type="button";edit.className="action-btn";edit.textContent="編輯";
+ edit.onclick=function(){
+  var current=restaurants[index];if(!current)return;
+  editingRestaurant=index;restaurantOriginalFiles=(current.files||[]).slice();
+  $("r-name").value=current.name;$("r-menu").value=current.menu||"";$("r-map").value=current.map||"";
+  restaurantDraftFiles=(current.files||[]).slice();renderRestaurantDraft();
+  $("r-save").textContent="儲存修改";$("r-editor-title").textContent="編輯餐廳";
+  activateInfo("restaurant-editor");window.scrollTo({top:0,behavior:"smooth"});
+ };
+ var del=document.createElement("button");del.type="button";del.className="action-btn delete";del.textContent="刪除";
+ del.onclick=function(){
+  if(confirm("確定刪除這筆餐廳資料？")){
+   var old=restaurants.splice(index,1)[0];
+   (old.files||[]).forEach(function(m){removeFile(m).catch(function(e){alert("附件刪除失敗："+e.message)})});
+   saveRestaurants();resetRestaurantForm();activateInfo("restaurants");
+  }
+ };
+ actions.appendChild(edit);actions.appendChild(del);card.appendChild(actions);box.appendChild(card);
+ activateInfo("restaurant-detail");window.scrollTo({top:0,behavior:"smooth"});
+}
+$("r-detail-back").onclick=function(){activateInfo("restaurants")};
 function renderRestaurantDraft(){var box=$("r-file-list");box.innerHTML="";restaurantDraftFiles.forEach(function(meta){fileLink(meta,box,true,function(m){restaurantDraftFiles=restaurantDraftFiles.filter(function(x){return m.path?x.path!==m.path:x.id!==m.id});renderRestaurantDraft()})})}
 function showRestaurantEditor(){activateInfo("restaurant-editor");$("r-name").focus()}
 function resetRestaurantForm(){restaurantDraftFiles.filter(function(m){return !restaurantOriginalFiles.some(function(o){return (o.path&&o.path===m.path)||(o.id&&o.id===m.id)})}).forEach(function(m){removeFile(m).catch(function(e){console.warn("取消編輯時清理新附件失敗",e)})});editingRestaurant=null;restaurantDraftFiles=[];restaurantOriginalFiles=[];$("restaurant-form").reset();$("r-save").textContent="新增餐廳";$("r-editor-title").textContent="新增餐廳";$("r-file-list").innerHTML=""}
