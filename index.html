@@ -388,7 +388,7 @@ async function putFile(file){
  await authReady;
  if(!supabaseClient)throw new Error("雲端附件服務載入失敗，請重新整理頁面或稍後再試。");
  if(!currentUser)throw new Error("訪客工作階段尚未建立，請重新整理頁面。");
- var path="shared/"+crypto.randomUUID()+"_"+safeFileName(file.name);
+ var ext=(String(file.name||"").match(/\.([a-zA-Z0-9]{1,12})$/)||[])[1]||"bin";var path="shared/"+crypto.randomUUID()+"."+ext.toLowerCase();
  var mime=detectFileType(file);
  var result=await supabaseClient.storage.from("trip-files").upload(path,file,{contentType:mime,upsert:false});
  if(result.error){var detail=[result.error.message,result.error.error,result.error.statusCode?"HTTP "+result.error.statusCode:""].filter(Boolean).join("；");throw new Error("上傳 "+file.name+" 失敗（"+mime+"）："+(detail||"Supabase Storage 未提供詳細原因"))}
