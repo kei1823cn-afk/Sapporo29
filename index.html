@@ -93,6 +93,18 @@ h2{font-size:22px;margin:0 0 12px;display:inline-block;background:var(--yellow);
 .cl li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center}
 .cl li .item-actions{display:flex;gap:4px}
 .cl li .item-actions button{font-size:12px;padding:4px 7px}
+.category-list{display:grid;gap:12px;margin-top:12px}
+.check-category{border:3px solid var(--ink);border-radius:22px;background:#fff;padding:10px 12px}
+.check-category-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.category-toggle{flex:1;min-width:150px;display:flex;align-items:center;gap:8px;border:0;background:transparent;color:var(--ink);font:inherit;text-align:left;padding:4px;cursor:pointer}
+.category-toggle strong{font-size:18px}
+.category-count{font-size:13px;background:var(--sky);border:2px solid var(--ink);border-radius:999px;padding:0 9px;white-space:nowrap}
+.category-arrow{font-size:20px;font-weight:bold}
+.category-actions{flex-wrap:wrap}
+.category-actions button{font-size:12px;padding:4px 7px}
+.category-items{margin-top:10px}
+.check-category .empty{padding:8px}
+
 .editor[hidden],.card[hidden]{display:none!important}
 .file-list{display:grid;gap:7px}
 .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
@@ -238,14 +250,13 @@ body{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
 </form></div>
 </section></div>
 <div id="info-todos" class="subpage"><section id="lists">
-<div class="section-toolbar"><h2>✅ 待辦事項</h2><button class="form-btn list-add" type="button" data-list-add="0">＋新增</button></div>
-<div class="tabs"><span class="tag B" style="font-size:13px">勾選完成狀態；每個項目均可編輯或刪除</span></div>
-<h3 style="margin:14px 0 6px">待確認事項</h3><p class="prog" id="p0"></p><ul class="cl" id="l0"></ul>
-<div class="section-toolbar sub-toolbar"><h3>行前準備清單</h3><button class="form-btn list-add" type="button" data-list-add="1">＋新增</button></div><p class="prog" id="p1"></p><ul class="cl" id="l1"></ul>
+<div class="section-toolbar"><h2>✅ 待辦事項</h2><button class="form-btn list-add" type="button" data-category-add="0">＋新增分類</button></div>
+<div class="tabs"><span class="tag B" style="font-size:13px">分類可展開／收合；項目可勾選、編輯及刪除</span></div>
+<div id="category-list-0" class="category-list"></div>
 </section></div>
 <div id="info-prep" class="subpage"><section>
-<div class="section-toolbar"><h2>🧳 行李清單</h2><button class="form-btn list-add" type="button" data-list-add="2">＋新增</button></div>
-<p class="prog" id="p2"></p><ul class="cl" id="l2"></ul></section></div>
+<div class="section-toolbar"><h2>🧳 行李清單</h2><button class="form-btn list-add" type="button" data-category-add="2">＋新增分類</button></div>
+<div id="category-list-2" class="category-list"></div></section></div>
 <div id="info-documents" class="subpage"><section>
 <div class="section-toolbar"><h2>📄 旅行文件</h2><button class="form-btn" type="button" id="doc-add">＋新增文件</button></div>
 <div class="card" id="doc-editor-card" hidden><form id="doc-form" class="editor">
@@ -357,25 +368,55 @@ D.forEach(function(d,i){
   $("days").appendChild(b);
 });
 showDay(0,false);
-// Editable checklist items; migrate existing checked state without losing progress.
-var checklistData=L.map(function(g,gi){return g[2].map(function(t,i){return {id:"base-"+gi+"-"+i,text:t,checked:load("sp-"+g[0]+"-"+i)==="1"}})});
-var customLists=JSON.parse(load("sp-custom-lists")||"{}");
-function persistChecklist(){save("sp-checklist",JSON.stringify(checklistData));save("sp-custom-lists",JSON.stringify(customLists))}
-var savedChecklist=load("sp-checklist");if(savedChecklist){try{var parsed=JSON.parse(savedChecklist);if(Array.isArray(parsed)&&parsed.length===3)checklistData=parsed}catch(e){}}
-function renderChecklist(gi){
- var ul=$(L[gi][0]);ul.innerHTML="";
- checklistData[gi].forEach(function(item){
-  var li=document.createElement("li");li.innerHTML='<label><input type="checkbox"><span></span></label><div class="item-actions"><button type="button" data-edit>編輯</button><button type="button" data-del>刪除</button></div>';
-  var cb=li.querySelector("input"),span=li.querySelector("span");span.textContent=item.text;cb.checked=!!item.checked;
-  cb.onchange=function(){item.checked=cb.checked;persistChecklist();updateProgress(gi)};
-  li.querySelector("[data-edit]").onclick=function(){var v=prompt("修改項目",item.text);if(v!==null&&v.trim()){item.text=v.trim();persistChecklist();renderChecklist(gi)}};
-  li.querySelector("[data-del]").onclick=function(){if(confirm("確定刪除此項目？")){checklistData[gi]=checklistData[gi].filter(function(x){return x.id!==item.id});persistChecklist();renderChecklist(gi)}};
-  ul.appendChild(li);
- });
- updateProgress(gi);
+// Categorized checklists with collapsible groups; migrate legacy items and completion states.
+var legacyChecklist=L.map(function(g,gi){return g[2].map(function(t,i){return {id:"base-"+gi+"-"+i,text:t,checked:load("sp-"+g[0]+"-"+i)==="1"}})});
+var savedChecklist=load("sp-checklist");
+if(savedChecklist){try{var parsed=JSON.parse(savedChecklist);if(Array.isArray(parsed)&&parsed.length===3)legacyChecklist=parsed}catch(e){}}
+var categoryLists=null;
+try{categoryLists=JSON.parse(load("sp-category-lists")||"null")}catch(e){}
+if(!Array.isArray(categoryLists)||categoryLists.length!==3){
+ categoryLists=legacyChecklist.map(function(items,gi){return [{id:"group-"+gi,name:L[gi][1],collapsed:false,items:items}]});
 }
-function updateProgress(gi){var a=checklistData[gi],n=a.filter(function(x){return x.checked}).length;$("p"+gi).textContent="已完成 "+n+" / "+a.length}
-document.querySelectorAll("[data-list-add]").forEach(function(b){b.onclick=function(){var gi=+b.dataset.listAdd,v=prompt("輸入要新增的項目");if(v&&v.trim()){checklistData[gi].push({id:"custom-"+Date.now()+"-"+Math.random().toString(36).slice(2),text:v.trim(),checked:false});persistChecklist();renderChecklist(gi)}}});
+function persistChecklist(){save("sp-category-lists",JSON.stringify(categoryLists))}
+function checklistProgress(items){var done=items.filter(function(x){return x.checked}).length;return done+" / "+items.length}
+function renderChecklist(gi){
+ var box=$("category-list-"+gi);if(!box)return;box.innerHTML="";
+ categoryLists[gi].forEach(function(group){
+  var card=document.createElement("div");card.className="check-category";
+  var head=document.createElement("div");head.className="check-category-head";
+  var toggle=document.createElement("button");toggle.type="button";toggle.className="category-toggle";
+  toggle.setAttribute("aria-expanded",String(!group.collapsed));
+  var title=document.createElement("strong");title.textContent=group.name;
+  var count=document.createElement("span");count.className="category-count";count.textContent=checklistProgress(group.items);
+  var arrow=document.createElement("span");arrow.className="category-arrow";arrow.textContent=group.collapsed?"＋":"－";
+  toggle.appendChild(title);toggle.appendChild(count);toggle.appendChild(arrow);
+  toggle.onclick=function(){group.collapsed=!group.collapsed;persistChecklist();renderChecklist(gi)};
+  head.appendChild(toggle);
+  var tools=document.createElement("div");tools.className="item-actions category-actions";
+  var add=document.createElement("button");add.type="button";add.textContent="＋項目";
+  add.onclick=function(){var v=prompt("新增項目至「"+group.name+"」");if(v&&v.trim()){group.items.push({id:"item-"+Date.now()+"-"+Math.random().toString(36).slice(2),text:v.trim(),checked:false});persistChecklist();renderChecklist(gi)}};
+  var rename=document.createElement("button");rename.type="button";rename.textContent="改名";
+  rename.onclick=function(){var v=prompt("分類名稱",group.name);if(v&&v.trim()){group.name=v.trim();persistChecklist();renderChecklist(gi)}};
+  var del=document.createElement("button");del.type="button";del.textContent="刪分類";
+  del.onclick=function(){if(confirm("確定刪除「"+group.name+"」及其中所有項目？")){categoryLists[gi]=categoryLists[gi].filter(function(x){return x.id!==group.id});persistChecklist();renderChecklist(gi)}};
+  tools.appendChild(add);tools.appendChild(rename);tools.appendChild(del);head.appendChild(tools);card.appendChild(head);
+  if(!group.collapsed){
+   var ul=document.createElement("ul");ul.className="cl category-items";
+   group.items.forEach(function(item){
+    var li=document.createElement("li");li.innerHTML='<label><input type="checkbox"><span></span></label><div class="item-actions"><button type="button" data-edit>編輯</button><button type="button" data-del>刪除</button></div>';
+    var cb=li.querySelector("input"),span=li.querySelector("span");span.textContent=item.text;cb.checked=!!item.checked;
+    cb.onchange=function(){item.checked=cb.checked;persistChecklist();renderChecklist(gi)};
+    li.querySelector("[data-edit]").onclick=function(){var v=prompt("修改項目",item.text);if(v!==null&&v.trim()){item.text=v.trim();persistChecklist();renderChecklist(gi)}};
+    li.querySelector("[data-del]").onclick=function(){if(confirm("確定刪除此項目？")){group.items=group.items.filter(function(x){return x.id!==item.id});persistChecklist();renderChecklist(gi)}};
+    ul.appendChild(li);
+   });
+   if(!group.items.length){var empty=document.createElement("div");empty.className="empty";empty.textContent="這個分類還沒有項目";card.appendChild(empty)}
+   else card.appendChild(ul);
+  }
+  box.appendChild(card);
+ });
+}
+document.querySelectorAll("[data-category-add]").forEach(function(b){b.onclick=function(){var gi=+b.dataset.categoryAdd,v=prompt("輸入新分類名稱");if(v&&v.trim()){categoryLists[gi].push({id:"category-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:v.trim(),collapsed:false,items:[]});persistChecklist();renderChecklist(gi)}}});
 [0,1,2].forEach(renderChecklist);
 (function(){
   var now=new Date(),t=new Date(2027,1,9),s=new Date(now.getFullYear(),now.getMonth(),now.getDate());
